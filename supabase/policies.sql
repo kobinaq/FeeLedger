@@ -1,4 +1,5 @@
 alter table schools enable row level security;
+alter table school_payment_methods enable row level security;
 alter table profiles enable row level security;
 alter table classes enable row level security;
 alter table academic_years enable row level security;
@@ -20,6 +21,8 @@ alter table subscriptions enable row level security;
 
 create policy "platform can manage schools" on schools for all using (is_platform_admin()) with check (is_platform_admin());
 create policy "staff can read own school" on schools for select using (id = current_school_id());
+create policy "staff read payment methods" on school_payment_methods for select using (school_id = current_school_id());
+create policy "school admin manage payment methods" on school_payment_methods for all using (school_id = current_school_id() and current_role() = 'school_admin') with check (school_id = current_school_id());
 
 create policy "platform profiles" on profiles for all using (is_platform_admin()) with check (is_platform_admin());
 create policy "users read own profile" on profiles for select using (id = auth.uid());

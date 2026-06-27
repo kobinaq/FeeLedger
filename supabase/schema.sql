@@ -20,6 +20,15 @@ create table schools (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists school_payment_methods (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references schools(id) on delete cascade,
+  name text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   school_id uuid references schools(id),

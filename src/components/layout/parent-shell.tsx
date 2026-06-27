@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, CreditCard, FileText, HelpCircle, Home, ReceiptText } from "lucide-react";
-import { school } from "@/lib/demo-data";
+import { requireParentProfile } from "@/features/auth/server";
+import { getCurrentSchool } from "@/features/schools/queries";
 
 const nav = [
   { href: "/parent/overview", label: "Home", icon: Home },
@@ -12,14 +13,16 @@ const nav = [
   { href: "/parent/contact", label: "Contact", icon: HelpCircle }
 ];
 
-export function ParentShell({ children }: { children: React.ReactNode }) {
+export async function ParentShell({ children }: { children: React.ReactNode }) {
+  const profile = await requireParentProfile();
+  const school = profile.school_id ? await getCurrentSchool(profile.school_id) : null;
   return (
     <div className="min-h-screen bg-brand-bg pb-20">
       <header className="border-b border-slate-200 bg-white px-5 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <Link href="/parent/overview">
             <p className="text-lg font-bold text-brand-green">FeeLedger</p>
-            <p className="text-sm text-slate-500">{school.name}</p>
+            <p className="text-sm text-slate-500">{school?.name ?? "Parent portal"}</p>
           </Link>
           <Link href="/logout" className="text-sm font-semibold text-slate-600">Logout</Link>
         </div>

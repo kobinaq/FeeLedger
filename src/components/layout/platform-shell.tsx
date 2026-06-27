@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Building2, CreditCard } from "lucide-react";
+import { requirePlatformProfile } from "@/features/auth/server";
 
 const nav = [
   { href: "/platform/schools", label: "Schools", icon: Building2 },
   { href: "/platform/subscriptions", label: "Subscriptions", icon: CreditCard }
 ];
 
-export function PlatformShell({ children }: { children: React.ReactNode }) {
+export async function PlatformShell({ children }: { children: React.ReactNode }) {
+  await requirePlatformProfile();
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-white/10 px-6 py-4">

@@ -1,8 +1,11 @@
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { school } from "@/lib/demo-data";
+import { requireParentProfile } from "@/features/auth/server";
+import { getCurrentSchool } from "@/features/schools/queries";
 
-export default function ParentContactPage() {
+export default async function ParentContactPage() {
+  const profile = await requireParentProfile();
+  const school = await getCurrentSchool(profile.school_id!);
   return (
     <>
       <h1 className="text-2xl font-bold text-slate-950">Contact Accounts Office</h1>
