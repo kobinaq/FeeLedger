@@ -5,9 +5,19 @@ import type { CookieOptions } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+  const protectedPath = path.startsWith("/admin") || path.startsWith("/parent") || path.startsWith("/platform");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes("example.supabase.co")) {
+    if (protectedPath) return NextResponse.redirect(new URL("/login", request.url));
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://example.supabase.co",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "demo-anon-key",
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -23,9 +33,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
-  const path = request.nextUrl.pathname;
-  const protectedPath = path.startsWith("/admin") || path.startsWith("/parent") || path.startsWith("/platform");
-
   if (!user && protectedPath) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

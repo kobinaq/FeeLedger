@@ -10,3 +10,5 @@ coverage
 .next-start.err
 .next-start.log
 tsconfig.tsbuildinfo
+test-results
+playwright-report

@@ -16,7 +16,7 @@ export default async function FamiliesPage() {
   const families = await getFamilies(profile.school_id!);
   return (
     <>
-      <PageHeader title="Family Accounts" description="Each account groups one or more children under a parent or guardian." action="Create Family" />
+      <PageHeader title="Family Accounts" action="Create Family" />
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <Card>
           <div className="mb-4"><SearchBox placeholder="Search by guardian, student, phone, or email" /></div>

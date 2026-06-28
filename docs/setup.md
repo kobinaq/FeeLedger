@@ -37,3 +37,20 @@ Run these SQL files in Supabase SQL editor:
 - Payment plan: open `/admin/payment-plans` and `/parent/payment-plan`.
 - Parent portal: open `/parent/overview`.
 - Reports: open `/admin/reports` and use export buttons.
+
+## Tests
+
+Run:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+For Playwright checks, run the app in one terminal and the suite in another:
+
+```bash
+npm run dev -- -p 3000
+npm run test:e2e
+```

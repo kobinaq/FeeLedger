@@ -1,5 +1,8 @@
+import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { calculateBillStatus, canRole, interpolateReminder, validateInstallmentTotal } from "@/lib/services/domain";
+import { calculateBillStatus, canRole, interpolateReminder, validateInstallmentTotal } from "../src/lib/services/domain";
+import { amountFromSubunit, amountToSubunit, createPaystackReference, verifyPaystackSignature } from "../src/lib/services/paystack";
+import { reminderDeliveryStatus } from "../src/lib/services/notifications";
 
 describe("FeeLedger domain rules", () => {
   it("calculates bill payment status", () => {
@@ -22,5 +25,31 @@ describe("FeeLedger domain rules", () => {
     expect(canRole("cashier", "billing")).toBe(false);
     expect(canRole("headteacher", "settings")).toBe(false);
     expect(canRole("school_admin", "settings")).toBe(true);
+  });
+
+  it("converts Paystack currency subunits", () => {
+    expect(amountToSubunit(125.5)).toBe(12550);
+    expect(amountFromSubunit(12550)).toBe(125.5);
+  });
+
+  it("creates FeeLedger Paystack references", () => {
+    expect(createPaystackReference("FL")).toMatch(/^FL-\d+-[a-f0-9]{12}$/);
+  });
+
+  it("verifies Paystack webhook signatures", () => {
+    const secret = "sk_test_secret";
+    const body = JSON.stringify({ event: "charge.success" });
+    const signature = crypto.createHmac("sha512", secret).update(body).digest("hex");
+    expect(verifyPaystackSignature(body, signature, secret)).toBe(true);
+    expect(verifyPaystackSignature(body, "bad-signature", secret)).toBe(false);
+  });
+
+  it("summarizes reminder delivery status", () => {
+    expect(reminderDeliveryStatus([{ provider: "sms", channel: "sms", status: "sent", providerId: "1" }])).toBe("sent");
+    expect(reminderDeliveryStatus([{ provider: "sms", channel: "sms", status: "failed", providerId: "1" }])).toBe("failed");
+    expect(reminderDeliveryStatus([
+      { provider: "sms", channel: "sms", status: "sent", providerId: "1" },
+      { provider: "email", channel: "email", status: "failed", providerId: "2" }
+    ])).toBe("partial");
   });
 });

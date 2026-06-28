@@ -11,6 +11,8 @@ alter table fee_rules enable row level security;
 alter table bills enable row level security;
 alter table bill_items enable row level security;
 alter table payments enable row level security;
+alter table online_payment_sessions enable row level security;
+alter table payment_webhook_events enable row level security;
 alter table receipts enable row level security;
 alter table payment_plans enable row level security;
 alter table payment_plan_installments enable row level security;
@@ -60,6 +62,11 @@ create policy "staff read payments" on payments for select using (school_id = cu
 create policy "parents read own payments" on payments for select using (family_id = (select family_id from profiles where id = auth.uid()));
 create policy "cashiers insert payments" on payments for insert with check (school_id = current_school_id() and current_role() in ('school_admin','accountant','cashier'));
 create policy "no payment deletes" on payments for delete using (false);
+
+create policy "staff read online payment sessions" on online_payment_sessions for select using (school_id = current_school_id());
+create policy "parents read own online payment sessions" on online_payment_sessions for select using (family_id = (select family_id from profiles where id = auth.uid()));
+create policy "parents create own online payment sessions" on online_payment_sessions for insert with check (school_id = current_school_id() and family_id = (select family_id from profiles where id = auth.uid()) and created_by = auth.uid());
+create policy "staff read payment webhook events" on payment_webhook_events for select using (current_role() in ('school_admin','accountant'));
 
 create policy "staff read receipts" on receipts for select using (school_id = current_school_id());
 create policy "parents read own receipts" on receipts for select using (family_id = (select family_id from profiles where id = auth.uid()));

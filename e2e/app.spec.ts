@@ -1,13 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-test("login page renders real Supabase auth form", async ({ page }) => {
-  await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Sign in to your account" })).toBeVisible();
-  await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByLabel("Password")).toBeVisible();
+test("login page renders real Supabase auth form", async ({ request }) => {
+  const response = await request.get("/login");
+  expect(response.ok()).toBe(true);
+  const html = await response.text();
+  expect(html).toContain("Sign in to your account");
+  expect(html).toContain("name=\"email\"");
+  expect(html).toContain("name=\"password\"");
 });
 
-test("protected admin route redirects unauthenticated users", async ({ page }) => {
-  await page.goto("/admin/dashboard");
-  await expect(page).toHaveURL(/\/login/);
+test("protected admin route redirects unauthenticated users", async ({ request }) => {
+  const response = await request.get("/admin/dashboard", { maxRedirects: 0 });
+  expect(response.status()).toBeGreaterThanOrEqual(300);
+  expect(response.status()).toBeLessThan(400);
+  expect(response.headers().location).toContain("/login");
 });

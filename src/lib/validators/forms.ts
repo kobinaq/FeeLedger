@@ -27,6 +27,13 @@ export const paymentSchema = z.object({
   notes: z.string().optional()
 });
 
+export const onlinePaymentSchema = z.object({
+  amount: z.coerce.number().positive("Amount must be more than zero"),
+  billId: z.string().optional(),
+  studentId: z.string().optional(),
+  paymentPlanId: z.string().optional()
+});
+
 export const paymentPlanSchema = z.object({
   familyId: z.string().min(1),
   totalBalance: z.coerce.number().positive(),

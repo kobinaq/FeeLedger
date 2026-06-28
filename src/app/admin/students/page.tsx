@@ -20,7 +20,7 @@ export default async function StudentsPage() {
   ]);
   return (
     <>
-      <PageHeader title="Students" description="Create, edit, archive, search, and link children to family accounts." action="Add Student" />
+      <PageHeader title="Students" action="Add Student" />
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <Card>
           <div className="mb-4 grid gap-3 md:grid-cols-3">

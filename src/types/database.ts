@@ -59,9 +59,19 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["bill_items"]["Insert"]>;
       };
       payments: {
-        Row: { id: string; school_id: string; family_id: string; student_id: string | null; bill_id: string | null; amount: number; method: string; reference_number: string | null; payment_date: string; notes: string | null; recorded_by: string | null; reversed_at: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; school_id: string; family_id: string; student_id?: string | null; bill_id?: string | null; amount: number; method: string; reference_number?: string | null; payment_date?: string; notes?: string | null; recorded_by?: string | null };
+        Row: { id: string; school_id: string; family_id: string; student_id: string | null; bill_id: string | null; amount: number; method: string; reference_number: string | null; payment_date: string; notes: string | null; recorded_by: string | null; source: "manual" | "paystack"; provider: string | null; provider_reference: string | null; provider_channel: string | null; provider_fees: number | null; verified_at: string | null; reversed_at: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; school_id: string; family_id: string; student_id?: string | null; bill_id?: string | null; amount: number; method: string; reference_number?: string | null; payment_date?: string; notes?: string | null; recorded_by?: string | null; source?: "manual" | "paystack"; provider?: string | null; provider_reference?: string | null; provider_channel?: string | null; provider_fees?: number | null; verified_at?: string | null };
         Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]> & { reversed_at?: string | null };
+      };
+      online_payment_sessions: {
+        Row: { id: string; school_id: string; family_id: string; student_id: string | null; bill_id: string | null; payment_plan_id: string | null; amount: number; currency: string; provider: string; provider_reference: string; provider_access_code: string | null; authorization_url: string | null; provider_channel: string | null; status: string; metadata: Json; provider_response: Json | null; verified_at: string | null; paid_at: string | null; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; school_id: string; family_id: string; student_id?: string | null; bill_id?: string | null; payment_plan_id?: string | null; amount: number; currency?: string; provider?: string; provider_reference: string; provider_access_code?: string | null; authorization_url?: string | null; provider_channel?: string | null; status?: string; metadata?: Json; provider_response?: Json | null; verified_at?: string | null; paid_at?: string | null; created_by?: string | null };
+        Update: Partial<Database["public"]["Tables"]["online_payment_sessions"]["Insert"]>;
+      };
+      payment_webhook_events: {
+        Row: { id: string; provider: string; event_type: string | null; provider_reference: string | null; payload: Json; signature_valid: boolean; processing_status: string; processing_error: string | null; processed_at: string | null; created_at: string };
+        Insert: { id?: string; provider: string; event_type?: string | null; provider_reference?: string | null; payload: Json; signature_valid?: boolean; processing_status?: string; processing_error?: string | null; processed_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["payment_webhook_events"]["Insert"]>;
       };
       receipts: {
         Row: { id: string; school_id: string; family_id: string; student_id: string | null; payment_id: string; receipt_number: string; amount: number; method: string; reference_number: string | null; receipt_date: string; recorded_by: string | null; created_at: string; updated_at: string };
@@ -104,7 +114,7 @@ export type Database = {
       bill_status: "draft" | "published" | "partially_paid" | "paid" | "overdue" | "cancelled";
       plan_status: "active" | "on_track" | "missed_payment" | "completed" | "cancelled";
       installment_status: "pending" | "partially_paid" | "paid" | "overdue";
-      reminder_status: "draft" | "scheduled" | "sent" | "failed";
+      reminder_status: "draft" | "scheduled" | "sent" | "partial" | "failed";
       reminder_channel: "sms" | "email" | "both";
     };
     Views: Record<string, never>;

@@ -19,7 +19,7 @@ export default async function NewPaymentPage({ searchParams }: { searchParams?: 
   const firstBalance = firstFamily ? familyBalance(firstFamily) : 0;
   return (
     <>
-      <PageHeader title="Record Payment" description="Cashier screen: search, confirm balance, enter payment, and issue receipt." />
+      <PageHeader title="Record Payment" />
       <StepperForm current={params?.success ? 4 : 2} steps={["Search family/student", "Confirm balance", "Enter payment", "Generate receipt"]} />
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_380px]">
         <Card>

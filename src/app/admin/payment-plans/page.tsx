@@ -15,7 +15,7 @@ export default async function PaymentPlansPage() {
   const { plans, families } = await getPaymentPlans(profile.school_id!);
   return (
     <>
-      <PageHeader title="Payment Plans" description="Create and track family-level instalment plans." action="Create Payment Plan" />
+      <PageHeader title="Payment Plans" action="Create Payment Plan" />
       <StepperForm current={2} steps={["Confirm Family Balance", "Add Instalments", "Review Plan", "Save and Notify Parent"]} />
       <section className="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
         <Card>

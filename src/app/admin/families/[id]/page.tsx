@@ -18,7 +18,7 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ i
   const plan = plans[0];
   return (
     <>
-      <PageHeader title={family.guardian_full_name} description="A simple financial profile for this family account." />
+      <PageHeader title={family.guardian_full_name} />
       <section className="grid gap-4 md:grid-cols-4">
         <Card><p className="text-sm text-slate-500">Total Outstanding</p><p className="mt-2 text-2xl font-bold">{money(familyBalance(family))}</p></Card>
         <Card><p className="text-sm text-slate-500">Total Paid This Term</p><p className="mt-2 text-2xl font-bold">{money(familyPaid(family))}</p></Card>
@@ -30,7 +30,7 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ i
         <Card><CardTitle>Guardian Details</CardTitle><div className="mt-3 text-sm text-slate-600"><p>{family.phone}</p><p>{family.email}</p><p>{family.address}</p><p className="mt-2">{family.notes}</p></div></Card>
         <Card><CardTitle>Linked Children</CardTitle><div className="mt-3 space-y-2">{family.students?.map((s: any) => <div key={s.id} className="rounded-md bg-slate-50 p-3">{s.first_name} {s.last_name}</div>)}</div></Card>
         <Card><CardTitle>Bills</CardTitle><Table><thead><tr><Th>Bill</Th><Th>Status</Th><Th>Total</Th><Th>Outstanding</Th></tr></thead><tbody>{family.bills?.map((b: any) => <tr key={b.id}><Td><Link className="text-brand-green" href={`/admin/bills/${b.id}`}>{b.bill_number}</Link></Td><Td><Badge value={b.status} /></Td><Td>{money(b.total_amount)}</Td><Td>{money(b.total_amount - b.paid_amount)}</Td></tr>)}</tbody></Table></Card>
-        <Card><CardTitle>Payments and Receipts</CardTitle><Table><thead><tr><Th>Date</Th><Th>Amount</Th><Th>Method</Th><Th>Receipt</Th></tr></thead><tbody>{family.payments?.map((p: any) => <tr key={p.id}><Td>{shortDate(p.payment_date)}</Td><Td>{money(p.amount)}</Td><Td>{p.method}</Td><Td>{family.receipts?.find((r: any) => r.payment_id === p.id)?.receipt_number}</Td></tr>)}</tbody></Table></Card>
+        <Card><CardTitle>Payments and Receipts</CardTitle><Table><thead><tr><Th>Date</Th><Th>Amount</Th><Th>Method</Th><Th>Source</Th><Th>Receipt</Th></tr></thead><tbody>{family.payments?.map((p: any) => <tr key={p.id}><Td>{shortDate(p.payment_date)}</Td><Td>{money(p.amount)}</Td><Td>{p.method}</Td><Td>{p.source ?? "manual"}</Td><Td>{family.receipts?.find((r: any) => r.payment_id === p.id)?.receipt_number}</Td></tr>)}</tbody></Table></Card>
         <Card><CardTitle>Payment Plan</CardTitle>{plan ? <div className="mt-3 space-y-2">{plan.payment_plan_installments?.map((i: any) => <div key={i.id} className="flex justify-between rounded-md bg-slate-50 p-3"><span>{shortDate(i.due_date)}</span><strong>{money(i.amount)}</strong><Badge value={i.status} /></div>)}</div> : <p className="mt-3 text-sm text-slate-500">No active plan.</p>}</Card>
         <Card><CardTitle>Reminder History</CardTitle><div className="mt-3 space-y-2">{family.reminders?.map((r: any) => <div key={r.id} className="rounded-md bg-slate-50 p-3"><Badge value={r.status} /><p className="mt-2 text-sm">{r.message}</p></div>)}</div></Card>
       </section>

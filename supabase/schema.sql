@@ -4,7 +4,7 @@ create type app_role as enum ('platform_admin','school_admin','headteacher','acc
 create type bill_status as enum ('draft','published','partially_paid','paid','overdue','cancelled');
 create type plan_status as enum ('active','on_track','missed_payment','completed','cancelled');
 create type installment_status as enum ('pending','partially_paid','paid','overdue');
-create type reminder_status as enum ('draft','scheduled','sent','failed');
+create type reminder_status as enum ('draft','scheduled','sent','partial','failed');
 create type reminder_channel as enum ('sms','email','both');
 
 create table schools (
@@ -167,9 +167,53 @@ create table payments (
   payment_date date not null default current_date,
   notes text,
   recorded_by uuid references profiles(id),
+  source text not null default 'manual' check (source in ('manual','paystack')),
+  provider text,
+  provider_reference text,
+  provider_channel text,
+  provider_fees numeric(12,2),
+  verified_at timestamptz,
   reversed_at timestamptz,
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (provider, provider_reference)
+);
+
+create table online_payment_sessions (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references schools(id) on delete cascade,
+  family_id uuid not null references families(id) on delete restrict,
+  student_id uuid references students(id) on delete set null,
+  bill_id uuid references bills(id) on delete set null,
+  payment_plan_id uuid,
+  amount numeric(12,2) not null check (amount > 0),
+  currency text not null default 'GHS',
+  provider text not null default 'paystack',
+  provider_reference text not null unique,
+  provider_access_code text,
+  authorization_url text,
+  provider_channel text,
+  status text not null default 'initialized' check (status in ('initialized','pending','success','failed','abandoned')),
+  metadata jsonb not null default '{}',
+  provider_response jsonb,
+  verified_at timestamptz,
+  paid_at timestamptz,
+  created_by uuid references profiles(id),
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table payment_webhook_events (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null,
+  event_type text,
+  provider_reference text,
+  payload jsonb not null,
+  signature_valid boolean not null default false,
+  processing_status text not null default 'received' check (processing_status in ('received','processed','ignored','failed')),
+  processing_error text,
+  processed_at timestamptz,
+  created_at timestamptz not null default now()
 );
 
 create table receipts (
@@ -266,5 +310,8 @@ create index on families (school_id);
 create index on students (school_id, family_id, class_id);
 create index on bills (school_id, family_id, student_id, status);
 create index on payments (school_id, family_id, payment_date);
+create index on online_payment_sessions (school_id, family_id, status);
+create index on online_payment_sessions (provider_reference);
+create index on payment_webhook_events (provider, provider_reference);
 create index on receipts (school_id, family_id, receipt_date);
 create index on reminders (school_id, family_id, status);

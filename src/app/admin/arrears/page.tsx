@@ -24,7 +24,7 @@ export default async function ArrearsPage() {
   }, {}));
   return (
     <>
-      <PageHeader title="Arrears" description="Find parents to follow up without overwhelming the accounts office." />
+      <PageHeader title="Arrears" />
       <div className="mb-5 flex flex-wrap gap-3"><Select className="w-44"><option>2026 Term 1</option></Select><Select className="w-44"><option>All classes</option></Select><Select className="w-44"><option>All bill statuses</option></Select><ExportButton label="Export Arrears List" /></div>
       <section className="grid gap-4 md:grid-cols-4"><StatCard label="Amount Still Owed" value={money(stats.outstanding)} hint="Open balances across families." /><StatCard label="Overdue Balance" value={money(top[0].balance)} hint="Largest overdue amount." /><StatCard label="Parents to Follow Up" value={String(top.filter((x) => x.balance > 0).length)} hint="Families with a balance." /><StatCard label="Families on Payment Plans" value="1" hint="Active instalment agreement." /></section>
       <section className="mt-6 grid gap-6 xl:grid-cols-2">

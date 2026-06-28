@@ -1,1 +1,1 @@
-export { recordPaymentAction } from "@/features/shared/actions";
+export { initiateParentPaystackPaymentAction, recordPaymentAction } from "@/features/shared/actions";

@@ -14,7 +14,7 @@ export default async function ReceiptsPage() {
   const receipts = await getReceipts(profile.school_id!);
   return (
     <>
-      <PageHeader title="Receipts" description="View, print, search, and resend receipts issued after payment." action="Print Selected" />
+      <PageHeader title="Receipts" action="Print Selected" />
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <Card>
           <div className="mb-4"><SearchBox placeholder="Search by receipt, family, reference, or date" /></div>

@@ -15,7 +15,7 @@ export default async function RemindersPage() {
   const { templates, reminders, families } = await getReminders(profile.school_id!);
   return (
     <>
-      <PageHeader title="Reminder Centre" description="Send simple SMS and email reminders using mock providers." action="Send Reminder" />
+      <PageHeader title="Reminder Centre" action="Send Reminder" />
       <section className="grid gap-6 xl:grid-cols-[380px_1fr]">
         <Card>
           <CardTitle>Send a Reminder</CardTitle>
@@ -24,7 +24,7 @@ export default async function RemindersPage() {
             <label className="block text-sm font-semibold">Template<Select name="templateId" className="mt-1"><option value="">Custom message</option>{templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</Select></label>
             <label className="block text-sm font-semibold">Channel<Select name="channel" className="mt-1"><option>both</option><option>sms</option><option>email</option></Select></label>
             <label className="block text-sm font-semibold">Message<Textarea name="message" className="mt-1" defaultValue={templates[0]?.body ?? ""} /></label>
-            <Button className="w-full"><Bell className="h-4 w-4" /> Send with Mock Provider</Button>
+            <Button className="w-full"><Bell className="h-4 w-4" /> Send Reminder</Button>
           </form>
         </Card>
         <div className="space-y-6">

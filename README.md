@@ -45,9 +45,24 @@ Open `http://localhost:3000`.
    - `supabase/policies.sql`
    - `supabase/seed.sql`
 4. Create the demo auth users in Supabase Auth using the emails above.
-5. Link each auth user to a row in `profiles`.
+5. The seed creates demo Auth users and matching `profiles` for local/demo projects. If your Supabase project blocks direct `auth.users` inserts, create the users in Supabase Auth and then apply matching `profiles` rows.
 
-The current app renders from seeded demo data while the Supabase schema, RLS, and API seams are ready for live persistence.
+The app uses Supabase as the runtime source of truth. The old in-app demo data is not used by production routes.
+
+## Tests
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+For E2E tests, start the app first, then run Playwright:
+
+```bash
+npm run dev -- -p 3000
+npm run test:e2e
+```
 
 ## Important Routes
 

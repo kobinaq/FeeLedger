@@ -4,6 +4,7 @@ import { familyBalance, getParentFamily } from "@/features/families/queries";
 import { getCurrentSchool } from "@/features/schools/queries";
 import { BalanceCard } from "@/components/parent/balance-card";
 import { ParentActionCard } from "@/components/parent/action-card";
+import { PayNowForm } from "@/components/parent/pay-now-form";
 import { ReceiptCard } from "@/components/parent/receipt-card";
 import { Card, CardTitle } from "@/components/ui/card";
 import { money, shortDate } from "@/lib/utils";
@@ -14,11 +15,15 @@ export default async function ParentOverviewPage() {
   const plan = family.payment_plans?.[0];
   const next = plan?.payment_plan_installments?.find((item: any) => item.status !== "paid");
   const latestReceipt = family.receipts?.[0];
+  const balance = familyBalance(family);
   return (
     <>
       <p className="text-sm font-semibold text-brand-amber">{school.name}</p>
       <h1 className="mt-1 text-2xl font-bold text-slate-950">Hello, {family.guardian_full_name}</h1>
-      <div className="mt-5"><BalanceCard label="Your Family Balance" value={money(familyBalance(family))} hint={`Next payment due: ${next ? shortDate(next.due_date) : "No payment due now"}`} /></div>
+      <div className="mt-5">
+        <BalanceCard label="Your Family Balance" value={money(balance)} hint={`Next payment due: ${next ? shortDate(next.due_date) : "No payment due now"}`} />
+        <PayNowForm amountDue={balance} />
+      </div>
       <section className="mt-5 grid gap-3 sm:grid-cols-4">
         <ParentActionCard href="/parent/bills" icon={BookOpen} label="View Bills" hint="See what each child owes." />
         <ParentActionCard href="/parent/receipts" icon={ReceiptText} label="View Receipts" hint="Open or download receipts." />

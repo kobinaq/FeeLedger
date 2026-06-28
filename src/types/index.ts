@@ -9,7 +9,7 @@ export type Role =
 export type BillStatus = "draft" | "published" | "partially_paid" | "paid" | "overdue" | "cancelled";
 export type PlanStatus = "active" | "on_track" | "missed_payment" | "completed" | "cancelled";
 export type InstallmentStatus = "pending" | "partially_paid" | "paid" | "overdue";
-export type ReminderStatus = "draft" | "scheduled" | "sent" | "failed";
+export type ReminderStatus = "draft" | "scheduled" | "sent" | "partial" | "failed";
 export type Channel = "sms" | "email" | "both";
 
 export type School = {

@@ -15,7 +15,7 @@ export default async function FeeSetupPage() {
   const { feeItems, feeRules, terms, classes } = await getFeeSetup(profile.school_id!);
   return (
     <>
-      <PageHeader title="Fee Setup" description="Create fee items and class-based rules, then preview bills before publishing." action="Preview Bills" />
+      <PageHeader title="Fee Setup" action="Preview Bills" />
       <StepperForm current={1} steps={["Set fee items", "Review class rules", "Preview bills"]} />
       <section className="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
         <Card>

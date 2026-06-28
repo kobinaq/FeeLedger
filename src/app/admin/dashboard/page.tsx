@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const installments = plansData.plans.flatMap((plan) => plan.payment_plan_installments ?? []);
   return (
     <>
-      <PageHeader title="Dashboard" description="A simple view of fee collection progress for the current term." action="Record Payment" />
+      <PageHeader title="Dashboard" action="Record Payment" />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Expected Fees This Term" value={money(stats.expected)} hint="All published student bills." />
         <StatCard label="Collected So Far" value={money(stats.collected)} hint={`This is ${percent(stats.rate)} of expected fees.`} />
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
           <CardTitle>Recent Payments</CardTitle>
           <Table>
             <thead><tr><Th>Date</Th><Th>Method</Th><Th>Reference</Th><Th>Amount</Th></tr></thead>
-            <tbody>{payments.slice(0, 5).map((payment) => <tr key={payment.id}><Td>{shortDate(payment.payment_date)}</Td><Td>{payment.method}</Td><Td>{payment.reference_number}</Td><Td>{money(payment.amount)}</Td></tr>)}</tbody>
+            <tbody>{payments.slice(0, 5).map((payment) => <tr key={payment.id}><Td>{shortDate(payment.payment_date)}</Td><Td>{payment.method}</Td><Td>{payment.provider_reference ?? payment.reference_number}</Td><Td>{money(payment.amount)}</Td></tr>)}</tbody>
           </Table>
         </Card>
         <Card>

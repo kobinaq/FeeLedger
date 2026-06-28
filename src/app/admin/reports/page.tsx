@@ -34,7 +34,7 @@ export default async function ReportsPage() {
   }, {}));
   return (
     <>
-      <PageHeader title="Reports" description="Clear reports for proprietors, headteachers, and the accounts office." />
+      <PageHeader title="Reports" />
       <div className="mb-5 flex flex-wrap gap-3"><Select className="w-44"><option>2026 Term 1</option></Select><input className="min-h-11 rounded-md border border-slate-300 px-3 text-sm" type="date" defaultValue="2026-01-27" /><ExportButton /><ExportButton label="Export PDF" /></div>
       <section className="grid gap-4 md:grid-cols-4"><StatCard label="Daily Collection" value={money(daily)} hint="Amount collected today." /><StatCard label="Expected Fees" value={money(term.expected)} hint="Term collection summary." /><StatCard label="Outstanding" value={money(term.outstanding)} hint="Fees still owed." /><StatCard label="Collection Rate" value={percent(term.rate)} hint="Collected against expected." /></section>
       <section className="mt-6 grid gap-6">

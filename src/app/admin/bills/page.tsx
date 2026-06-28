@@ -21,7 +21,7 @@ export default async function BillsPage() {
   ]);
   return (
     <>
-      <PageHeader title="Bills" description="Generate term bills, preview every bill, then publish and notify parents." action="Generate Bills" />
+      <PageHeader title="Bills" action="Generate Bills" />
       <StepperForm current={1} steps={["Select Term and Classes", "Preview Bills", "Publish and Notify Parents"]} />
       <section className="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
         <Card>
