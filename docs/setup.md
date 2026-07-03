@@ -29,6 +29,14 @@ Run these SQL files in Supabase SQL editor:
 3. `supabase/policies.sql`
 4. `supabase/seed.sql`
 
+Then create the demo Auth users and matching `profiles` rows with the Supabase Admin API:
+
+```bash
+npm run setup:demo-users
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is required for that command. Keep it server-side only, and never prefix it with `NEXT_PUBLIC_`.
+
 ## Demo Flow Checks
 
 - Family billing: open `/admin/fee-setup`, then `/admin/bills`.
@@ -36,7 +44,7 @@ Run these SQL files in Supabase SQL editor:
 - Reminder: open `/admin/reminders` and review templates and history.
 - Payment plan: open `/admin/payment-plans` and `/parent/payment-plan`.
 - Parent portal: open `/parent/overview`.
-- Reports: open `/admin/reports` and use export buttons.
+- Reports: open `/admin/reports` and review collection/arrears summaries.
 
 ## Tests
 

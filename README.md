@@ -44,8 +44,13 @@ Open `http://localhost:3000`.
    - `supabase/functions.sql`
    - `supabase/policies.sql`
    - `supabase/seed.sql`
-4. Create the demo auth users in Supabase Auth using the emails above.
-5. The seed creates demo Auth users and matching `profiles` for local/demo projects. If your Supabase project blocks direct `auth.users` inserts, create the users in Supabase Auth and then apply matching `profiles` rows.
+4. Create the demo Auth users and matching profiles with the Admin API:
+   ```bash
+   npm run setup:demo-users
+   ```
+   This requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`. Do not expose the service role key in Vercel client env vars.
+
+The SQL seed intentionally avoids direct writes to `auth.users` and `auth.identities`. Auth users should be created through Supabase Auth, the Dashboard, or the Admin API script above.
 
 The app uses Supabase as the runtime source of truth. The old in-app demo data is not used by production routes.
 

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { CollectionChart } from "@/components/charts/collection-chart";
+import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
@@ -33,7 +35,11 @@ export default async function DashboardPage() {
   const installments = plansData.plans.flatMap((plan) => plan.payment_plan_installments ?? []);
   return (
     <>
-      <PageHeader title="Dashboard" action="Record Payment" />
+      <PageHeader
+        title="Dashboard"
+        description="Track collection health, payment risk, and the next account-office actions."
+        action={<Link href="/admin/payments/new"><Button>Record Payment</Button></Link>}
+      />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <StatCard label="Expected Fees This Term" value={money(stats.expected)} hint="All published student bills." />
         <StatCard label="Collected So Far" value={money(stats.collected)} hint={`This is ${percent(stats.rate)} of expected fees.`} />

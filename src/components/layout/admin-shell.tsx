@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Banknote, Bell, BookOpen, ChartColumn, CreditCard, FileText, Home, Landmark, ReceiptText, Settings, Users } from "lucide-react";
 import { requireAdminProfile } from "@/features/auth/server";
 import { getCurrentSchool, getCurrentTerm } from "@/features/schools/queries";
+import { NavLink } from "@/components/layout/nav-link";
 
 const nav = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
@@ -24,17 +25,22 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   const term = profile.school_id ? await getCurrentTerm(profile.school_id) : null;
   return (
     <div className="min-h-screen bg-brand-bg lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="bg-brand-green p-4 text-white lg:min-h-screen">
+      <aside className="bg-brand-greenDark p-4 text-white lg:min-h-screen">
         <Link href="/admin/dashboard" className="block rounded-md px-3 py-3">
           <p className="text-lg font-bold">FeeLedger</p>
           <p className="text-sm text-emerald-100">{school?.name ?? "School workspace"}</p>
         </Link>
         <nav className="mt-5 grid grid-cols-2 gap-1 lg:grid-cols-1">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-emerald-50 hover:bg-white/10">
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
+            <NavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
+              activeClassName="bg-white text-brand-greenDark shadow-soft"
+              inactiveClassName="text-emerald-50 hover:bg-white/10"
+            />
           ))}
         </nav>
       </aside>

@@ -112,6 +112,141 @@ $$;
 
 create sequence if not exists receipt_number_seq start 1000;
 
+create or replace function public.record_payment_transaction(
+  p_school_id uuid,
+  p_family_id uuid,
+  p_student_id uuid default null,
+  p_bill_id uuid default null,
+  p_amount numeric default 0,
+  p_method text default 'manual',
+  p_reference_number text default null,
+  p_payment_date date default current_date,
+  p_notes text default null,
+  p_recorded_by uuid default auth.uid(),
+  p_source text default 'manual',
+  p_provider text default null,
+  p_provider_reference text default null,
+  p_provider_channel text default null,
+  p_provider_fees numeric default null,
+  p_verified_at timestamptz default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  payment_id uuid;
+  target_bill bills%rowtype;
+  family_exists boolean;
+  student_exists boolean;
+  is_service_role boolean := coalesce(auth.role(), '') = 'service_role';
+begin
+  if p_amount <= 0 then
+    raise exception 'Payment amount must be more than zero.';
+  end if;
+
+  if p_source not in ('manual','paystack') then
+    raise exception 'Unsupported payment source.';
+  end if;
+
+  if not is_service_role then
+    if current_school_id() is null or p_school_id <> current_school_id() then
+      raise exception 'Payment school does not match the signed-in profile.';
+    end if;
+
+    if p_source = 'paystack' then
+      raise exception 'Online payment verification must use the service role.';
+    end if;
+
+    if public.current_role() not in ('school_admin','accountant','cashier') then
+      raise exception 'You do not have permission to record this payment.';
+    end if;
+  end if;
+
+  if p_provider is not null and p_provider_reference is not null then
+    select id into payment_id
+    from payments
+    where provider = p_provider and provider_reference = p_provider_reference;
+
+    if payment_id is not null then
+      return payment_id;
+    end if;
+  end if;
+
+  select exists (
+    select 1 from families
+    where id = p_family_id and school_id = p_school_id
+  ) into family_exists;
+
+  if not family_exists then
+    raise exception 'Family not found for this school.';
+  end if;
+
+  if p_student_id is not null then
+    select exists (
+      select 1 from students
+      where id = p_student_id and family_id = p_family_id and school_id = p_school_id
+    ) into student_exists;
+
+    if not student_exists then
+      raise exception 'Student not found for this family.';
+    end if;
+  end if;
+
+  if p_bill_id is not null then
+    select *
+    into target_bill
+    from bills
+    where id = p_bill_id
+    for update;
+
+    if target_bill.id is null then
+      raise exception 'Bill not found.';
+    end if;
+
+    if target_bill.school_id <> p_school_id or target_bill.family_id <> p_family_id then
+      raise exception 'Bill does not belong to this family.';
+    end if;
+
+    if p_amount > (target_bill.total_amount - target_bill.paid_amount) then
+      raise exception 'Payment amount cannot be more than the selected bill balance.';
+    end if;
+  end if;
+
+  insert into payments (
+    school_id, family_id, student_id, bill_id, amount, method,
+    reference_number, payment_date, notes, recorded_by, source,
+    provider, provider_reference, provider_channel, provider_fees, verified_at
+  )
+  values (
+    p_school_id, p_family_id, p_student_id, p_bill_id, p_amount, p_method,
+    p_reference_number, coalesce(p_payment_date, current_date), p_notes, p_recorded_by, p_source,
+    p_provider, p_provider_reference, p_provider_channel, p_provider_fees, p_verified_at
+  )
+  returning id into payment_id;
+
+  insert into audit_logs (school_id, actor_id, action, entity_type, entity_id, metadata)
+  values (
+    p_school_id,
+    p_recorded_by,
+    case when p_source = 'paystack' then 'verified_online_payment' else 'recorded_payment' end,
+    'payments',
+    payment_id,
+    jsonb_build_object(
+      'amount', p_amount,
+      'method', p_method,
+      'source', p_source,
+      'bill_id', p_bill_id,
+      'provider', p_provider,
+      'provider_reference', p_provider_reference
+    )
+  );
+
+  return payment_id;
+end;
+$$;
+
 create or replace function public.update_payment_plan_installment_for_payment()
 returns trigger
 language plpgsql

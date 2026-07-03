@@ -2,14 +2,14 @@ import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="overflow-x-auto">
-      <table className={cn("w-full min-w-[680px] text-left text-sm", className)} {...props} />
+    <div className="overflow-x-auto rounded-lg border border-brand-line">
+      <table className={cn("w-full min-w-[680px] border-separate border-spacing-0 bg-white text-left text-sm", className)} {...props} />
     </div>
   );
 }
 
 export function Th(props: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th {...props} className={cn("border-b border-slate-200 px-3 py-3 font-semibold text-slate-600", props.className)} />;
+  return <th {...props} className={cn("border-b border-brand-line bg-slate-50 px-3 py-3 text-xs font-semibold uppercase text-brand-muted", props.className)} />;
 }
 
 export function Td(props: React.TdHTMLAttributes<HTMLTableCellElement>) {

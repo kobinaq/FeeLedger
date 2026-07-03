@@ -54,27 +54,24 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
   if (existingError) throw new Error(existingError.message);
   if (existing) return { status: "success", paymentId: existing.id };
 
-  const { data: payment, error: paymentError } = await supabase
-    .from("payments")
-    .insert({
-      school_id: session.school_id,
-      family_id: session.family_id,
-      student_id: session.student_id,
-      bill_id: session.bill_id,
-      amount: verification.amount,
-      method: paystackMethod(verification.channel),
-      reference_number: reference,
-      payment_date: todayIso(),
-      notes: "Automatically recorded from verified Paystack payment.",
-      source: "paystack",
-      provider: "paystack",
-      provider_reference: reference,
-      provider_channel: verification.channel,
-      provider_fees: verification.fees,
-      verified_at: new Date().toISOString()
-    })
-    .select("id")
-    .single();
+  const { data: paymentId, error: paymentError } = await supabase.rpc("record_payment_transaction", {
+    p_school_id: session.school_id,
+    p_family_id: session.family_id,
+    p_student_id: session.student_id,
+    p_bill_id: session.bill_id,
+    p_amount: verification.amount,
+    p_method: paystackMethod(verification.channel),
+    p_reference_number: reference,
+    p_payment_date: todayIso(),
+    p_notes: "Automatically recorded from verified Paystack payment.",
+    p_recorded_by: null,
+    p_source: "paystack",
+    p_provider: "paystack",
+    p_provider_reference: reference,
+    p_provider_channel: verification.channel,
+    p_provider_fees: verification.fees,
+    p_verified_at: new Date().toISOString()
+  });
   if (paymentError) throw new Error(paymentError.message);
-  return { status: "success", paymentId: payment.id };
+  return { status: "success", paymentId };
 }

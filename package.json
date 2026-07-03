@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "setup:demo-users": "node scripts/setup-demo-users.mjs",
     "test": "vitest run tests",
     "test:e2e": "playwright test"
   },

@@ -15,7 +15,7 @@ export default async function RemindersPage() {
   const { templates, reminders, families } = await getReminders(profile.school_id!);
   return (
     <>
-      <PageHeader title="Reminder Centre" action="Send Reminder" />
+      <PageHeader title="Reminder Centre" description="Send balance reminders and review communication history." />
       <section className="grid gap-6 xl:grid-cols-[380px_1fr]">
         <Card>
           <CardTitle>Send a Reminder</CardTitle>

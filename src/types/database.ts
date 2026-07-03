@@ -118,7 +118,29 @@ export type Database = {
       reminder_channel: "sms" | "email" | "both";
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      record_payment_transaction: {
+        Args: {
+          p_school_id: string;
+          p_family_id: string;
+          p_student_id?: string | null;
+          p_bill_id?: string | null;
+          p_amount?: number;
+          p_method?: string;
+          p_reference_number?: string | null;
+          p_payment_date?: string | null;
+          p_notes?: string | null;
+          p_recorded_by?: string | null;
+          p_source?: "manual" | "paystack";
+          p_provider?: string | null;
+          p_provider_reference?: string | null;
+          p_provider_channel?: string | null;
+          p_provider_fees?: number | null;
+          p_verified_at?: string | null;
+        };
+        Returns: string;
+      };
+    };
     CompositeTypes: Record<string, never>;
   };
 };

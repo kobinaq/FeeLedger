@@ -16,8 +16,8 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
   if (!bill) notFound();
   return (
     <>
-      <PageHeader title={bill.bill_number} />
-      <div className="mb-5 flex gap-2"><Button>Print Bill</Button><form action={publishBillAction}><input type="hidden" name="billId" value={bill.id} /><Button variant="secondary">Publish Bill</Button></form></div>
+      <PageHeader title={bill.bill_number} description="Review bill items, balance, due date, and publication state." />
+      <div className="mb-5 flex gap-2"><form action={publishBillAction}><input type="hidden" name="billId" value={bill.id} /><Button variant="secondary">Publish Bill</Button></form></div>
       <section className="grid gap-4 md:grid-cols-4">
         <Card><p className="text-sm text-slate-500">Student</p><p className="mt-2 font-bold">{bill.students?.first_name} {bill.students?.last_name}</p></Card>
         <Card><p className="text-sm text-slate-500">Family</p><p className="mt-2 font-bold">{bill.families?.guardian_full_name}</p></Card>

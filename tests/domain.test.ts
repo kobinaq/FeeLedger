@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { calculateBillStatus, canRole, interpolateReminder, validateInstallmentTotal } from "../src/lib/services/domain";
 import { amountFromSubunit, amountToSubunit, createPaystackReference, verifyPaystackSignature } from "../src/lib/services/paystack";
 import { reminderDeliveryStatus } from "../src/lib/services/notifications";
+import { canRecordPayment, roleHome } from "../src/features/auth/permissions";
 
 describe("FeeLedger domain rules", () => {
   it("calculates bill payment status", () => {
@@ -25,6 +26,21 @@ describe("FeeLedger domain rules", () => {
     expect(canRole("cashier", "billing")).toBe(false);
     expect(canRole("headteacher", "settings")).toBe(false);
     expect(canRole("school_admin", "settings")).toBe(true);
+  });
+
+  it("routes authenticated users to the right home page", () => {
+    expect(roleHome("platform_admin")).toBe("/platform/schools");
+    expect(roleHome("parent")).toBe("/parent/overview");
+    expect(roleHome("cashier")).toBe("/admin/payments/new");
+    expect(roleHome("school_admin")).toBe("/admin/dashboard");
+  });
+
+  it("limits manual payment recording to finance roles", () => {
+    expect(canRecordPayment("school_admin")).toBe(true);
+    expect(canRecordPayment("accountant")).toBe(true);
+    expect(canRecordPayment("cashier")).toBe(true);
+    expect(canRecordPayment("headteacher")).toBe(false);
+    expect(canRecordPayment("parent")).toBe(false);
   });
 
   it("converts Paystack currency subunits", () => {

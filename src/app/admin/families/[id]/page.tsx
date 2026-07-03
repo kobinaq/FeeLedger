@@ -18,14 +18,14 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ i
   const plan = plans[0];
   return (
     <>
-      <PageHeader title={family.guardian_full_name} />
+      <PageHeader title={family.guardian_full_name} description="Family ledger, children, bills, payments, plans, and reminders in one place." />
       <section className="grid gap-4 md:grid-cols-4">
         <Card><p className="text-sm text-slate-500">Total Outstanding</p><p className="mt-2 text-2xl font-bold">{money(familyBalance(family))}</p></Card>
         <Card><p className="text-sm text-slate-500">Total Paid This Term</p><p className="mt-2 text-2xl font-bold">{money(familyPaid(family))}</p></Card>
         <Card><p className="text-sm text-slate-500">Children</p><p className="mt-2 text-2xl font-bold">{family.students?.length ?? 0}</p></Card>
         <Card><p className="text-sm text-slate-500">Payment Plan</p><div className="mt-3"><Badge value={plan?.status ?? "inactive"} /></div></Card>
       </section>
-      <div className="mt-5 flex flex-wrap gap-2"><Link href="/admin/payments/new"><Button>Record Payment</Button></Link><Button variant="secondary">Send Reminder</Button><Button variant="secondary">Create Payment Plan</Button><Button variant="secondary">View Statement</Button></div>
+      <div className="mt-5 flex flex-wrap gap-2"><Link href="/admin/payments/new"><Button>Record Payment</Button></Link><Link href="/admin/reminders"><Button variant="secondary">Send Reminder</Button></Link><Link href="/admin/payment-plans"><Button variant="secondary">Create Payment Plan</Button></Link></div>
       <section className="mt-6 grid gap-6 xl:grid-cols-2">
         <Card><CardTitle>Guardian Details</CardTitle><div className="mt-3 text-sm text-slate-600"><p>{family.phone}</p><p>{family.email}</p><p>{family.address}</p><p className="mt-2">{family.notes}</p></div></Card>
         <Card><CardTitle>Linked Children</CardTitle><div className="mt-3 space-y-2">{family.students?.map((s) => <div key={s.id} className="rounded-md bg-slate-50 p-3">{s.first_name} {s.last_name}</div>)}</div></Card>

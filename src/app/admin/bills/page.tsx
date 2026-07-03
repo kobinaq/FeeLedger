@@ -21,7 +21,7 @@ export default async function BillsPage() {
   ]);
   return (
     <>
-      <PageHeader title="Bills" action="Generate Bills" />
+      <PageHeader title="Bills" description="Generate draft bills, review balances, and publish only when the term setup is ready." />
       <StepperForm current={1} steps={["Select Term and Classes", "Preview Bills", "Publish and Notify Parents"]} />
       <section className="mt-6 grid gap-6 xl:grid-cols-[360px_1fr]">
         <Card>

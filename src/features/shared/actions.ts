@@ -256,29 +256,24 @@ export async function recordPaymentAction(formData: FormData) {
     notes: value(formData, "notes")
   });
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("payments")
-    .insert({
-      school_id: profile.school_id,
-      family_id: parsed.familyId,
-      student_id: parsed.studentId || null,
-      bill_id: parsed.billId || null,
-      amount: parsed.amount,
-      method: parsed.method,
-      reference_number: parsed.reference,
-      payment_date: parsed.paymentDate ?? new Date().toISOString().slice(0, 10),
-      notes: parsed.notes,
-      recorded_by: profile.id,
-      source: "manual"
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("record_payment_transaction", {
+    p_school_id: profile.school_id,
+    p_family_id: parsed.familyId,
+    p_student_id: parsed.studentId || null,
+    p_bill_id: parsed.billId || null,
+    p_amount: parsed.amount,
+    p_method: parsed.method,
+    p_reference_number: parsed.reference,
+    p_payment_date: parsed.paymentDate ?? new Date().toISOString().slice(0, 10),
+    p_notes: parsed.notes ?? null,
+    p_recorded_by: profile.id,
+    p_source: "manual"
+  });
   if (error) throw new Error(error.message);
-  await audit("recorded_payment", "payments", data.id, { amount: parsed.amount, method: parsed.method });
   revalidatePath("/admin/payments");
   revalidatePath("/admin/dashboard");
   revalidatePath(`/admin/families/${parsed.familyId}`);
-  redirect(`/admin/payments/new?success=${data.id}`);
+  redirect(`/admin/payments/new?success=${data}`);
 }
 
 export async function initiateParentPaystackPaymentAction(formData: FormData) {
