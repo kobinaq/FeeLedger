@@ -9,6 +9,31 @@ export type FamilySummary = Tables<"families"> & {
   receipts: Tables<"receipts">[];
 };
 
+export type FamilyDetail = FamilySummary & {
+  reminders: Tables<"reminders">[];
+  payment_plans: Array<Tables<"payment_plans"> & {
+    payment_plan_installments: Tables<"payment_plan_installments">[];
+  }>;
+};
+
+export type BillDetail = Tables<"bills"> & {
+  students: Tables<"students"> | null;
+  families: Tables<"families"> | null;
+  terms: Tables<"terms"> | null;
+  bill_items: Tables<"bill_items">[];
+  payments: Tables<"payments">[];
+  receipts: Tables<"receipts">[];
+};
+
+export type PaymentPlanSummary = Tables<"payment_plans"> & {
+  families: Tables<"families"> | null;
+  payment_plan_installments: Tables<"payment_plan_installments">[];
+};
+
+export type PaymentPlanFamily = Tables<"families"> & {
+  bills: Tables<"bills">[];
+};
+
 export async function getCurrentSchool(schoolId: string) {
   noStore();
   const supabase = await createClient();
@@ -55,7 +80,7 @@ export async function getFamilyById(schoolId: string, familyId: string) {
     .eq("id", familyId)
     .single();
   if (error) throw new Error(error.message);
-  return data;
+  return data as FamilyDetail;
 }
 
 export async function getParentFamily(familyId: string) {
@@ -67,7 +92,7 @@ export async function getParentFamily(familyId: string) {
     .eq("id", familyId)
     .single();
   if (error) throw new Error(error.message);
-  return data;
+  return data as FamilyDetail;
 }
 
 export async function getStudents(schoolId: string) {
@@ -119,7 +144,7 @@ export async function getBillById(schoolId: string, billId: string) {
     .eq("id", billId)
     .single();
   if (error) throw new Error(error.message);
-  return data;
+  return data as BillDetail;
 }
 
 export async function getPayments(schoolId: string) {
@@ -168,7 +193,7 @@ export async function getPaymentPlans(schoolId: string) {
   ]);
   const error = planError ?? familyError;
   if (error) throw new Error(error.message);
-  return { plans: plans ?? [], families: families ?? [] };
+  return { plans: (plans ?? []) as PaymentPlanSummary[], families: (families ?? []) as PaymentPlanFamily[] };
 }
 
 export async function getPlatformSchools() {

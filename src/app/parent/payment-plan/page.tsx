@@ -9,7 +9,7 @@ export default async function ParentPaymentPlanPage() {
   const profile = await requireParentProfile();
   const family = await getParentFamily(profile.family_id!);
   const plan = family.payment_plans?.[0];
-  const next = plan?.payment_plan_installments?.find((item: any) => item.status !== "paid");
+  const next = plan?.payment_plan_installments?.find((item) => item.status !== "paid");
   return (
     <>
       <h1 className="text-2xl font-bold text-slate-950">Payment Plan</h1>

@@ -2,15 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyAndRecordPaystackPayment } from "@/features/payments/paystack-processing";
 import { verifyPaystackSignature } from "@/lib/services/paystack";
+import type { Json } from "@/types/database";
+
+type PaystackWebhookPayload = {
+  event?: string;
+  data?: {
+    reference?: string | null;
+  };
+  [key: string]: Json | undefined;
+};
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-paystack-signature");
   const signatureValid = verifyPaystackSignature(rawBody, signature);
   const supabase = createServiceClient();
-  let payload: any;
+  let payload: PaystackWebhookPayload;
   try {
-    payload = JSON.parse(rawBody);
+    const parsed: unknown = JSON.parse(rawBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid JSON payload.");
+    payload = parsed as PaystackWebhookPayload;
   } catch {
     await supabase.from("payment_webhook_events").insert({
       provider: "paystack",

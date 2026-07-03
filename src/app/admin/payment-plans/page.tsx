@@ -33,7 +33,7 @@ export default async function PaymentPlansPage() {
         </Card>
         <Card>
           <CardTitle>Active Plans</CardTitle>
-          <Table><thead><tr><Th>Family</Th><Th>Total Under Plan</Th><Th>Status</Th><Th>Next Due</Th><Th>Approved By</Th></tr></thead><tbody>{plans.map((plan) => <tr key={plan.id}><Td>{plan.families?.guardian_full_name}</Td><Td>{money(plan.total_balance)}</Td><Td><Badge value={plan.status} /></Td><Td>{shortDate(plan.payment_plan_installments?.find((i: any) => i.status !== "paid")?.due_date ?? plan.created_at)}</Td><Td>{plan.approved_by}</Td></tr>)}</tbody></Table>
+          <Table><thead><tr><Th>Family</Th><Th>Total Under Plan</Th><Th>Status</Th><Th>Next Due</Th><Th>Approved By</Th></tr></thead><tbody>{plans.map((plan) => <tr key={plan.id}><Td>{plan.families?.guardian_full_name}</Td><Td>{money(plan.total_balance)}</Td><Td><Badge value={plan.status} /></Td><Td>{shortDate(plan.payment_plan_installments?.find((i) => i.status !== "paid")?.due_date ?? plan.created_at)}</Td><Td>{plan.approved_by}</Td></tr>)}</tbody></Table>
         </Card>
       </section>
     </>

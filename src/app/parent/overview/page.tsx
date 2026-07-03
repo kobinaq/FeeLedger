@@ -13,7 +13,7 @@ export default async function ParentOverviewPage() {
   const profile = await requireParentProfile();
   const [family, school] = await Promise.all([getParentFamily(profile.family_id!), getCurrentSchool(profile.school_id!)]);
   const plan = family.payment_plans?.[0];
-  const next = plan?.payment_plan_installments?.find((item: any) => item.status !== "paid");
+  const next = plan?.payment_plan_installments?.find((item) => item.status !== "paid");
   const latestReceipt = family.receipts?.[0];
   const balance = familyBalance(family);
   return (
@@ -31,7 +31,7 @@ export default async function ParentOverviewPage() {
         <ParentActionCard href="/parent/contact" icon={HelpCircle} label="Contact School" hint="Reach the accounts office." />
       </section>
       <section className="mt-6 grid gap-4 md:grid-cols-2">
-        <Card><CardTitle>Children</CardTitle><div className="mt-3 space-y-2">{family.students?.map((s: any) => <div key={s.id} className="rounded-md bg-slate-50 p-3">{s.first_name} {s.last_name}</div>)}</div></Card>
+        <Card><CardTitle>Children</CardTitle><div className="mt-3 space-y-2">{family.students?.map((s) => <div key={s.id} className="rounded-md bg-slate-50 p-3">{s.first_name} {s.last_name}</div>)}</div></Card>
         <Card><CardTitle>Latest Receipt</CardTitle><div className="mt-3">{latestReceipt ? <ReceiptCard receipt={latestReceipt} /> : <p className="text-sm text-slate-500">No receipt yet.</p>}</div></Card>
       </section>
     </>

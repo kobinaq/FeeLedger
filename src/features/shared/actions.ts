@@ -8,6 +8,7 @@ import { requireAdminProfile, requireParentProfile, requirePlatformProfile } fro
 import { familySchema, feeItemSchema, feeRuleSchema, onlinePaymentSchema, paymentPlanSchema, paymentSchema, reminderSchema, schoolSchema, studentSchema } from "@/lib/validators/forms";
 import { reminderDeliveryStatus, sendNotification } from "@/lib/services/notifications";
 import { createPaystackReference, initializePaystackTransaction } from "@/lib/services/paystack";
+import type { Tables } from "@/types/database";
 
 function value(formData: FormData, key: string) {
   const raw = formData.get(key);
@@ -296,10 +297,11 @@ export async function initiateParentPaystackPaymentAction(formData: FormData) {
   if (familyError || !family) throw new Error(familyError?.message ?? "Family not found.");
   if (schoolError || !school) throw new Error(schoolError?.message ?? "School not found.");
 
-  const outstanding = (family.bills ?? []).reduce((total: number, bill: any) => total + Number(bill.total_amount) - Number(bill.paid_amount), 0);
+  const bills = (family.bills ?? []) as Tables<"bills">[];
+  const outstanding = bills.reduce((total, bill) => total + Number(bill.total_amount) - Number(bill.paid_amount), 0);
   if (parsed.amount > outstanding) throw new Error("Payment amount cannot be more than the outstanding balance.");
   if (parsed.billId) {
-    const bill = family.bills?.find((item: any) => item.id === parsed.billId);
+    const bill = bills.find((item) => item.id === parsed.billId);
     if (!bill) throw new Error("Bill not found for this family.");
     const billOutstanding = Number(bill.total_amount) - Number(bill.paid_amount);
     if (parsed.amount > billOutstanding) throw new Error("Payment amount cannot be more than the selected bill balance.");

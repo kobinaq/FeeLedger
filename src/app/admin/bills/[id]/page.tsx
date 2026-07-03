@@ -26,7 +26,7 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
       </section>
       <Card className="mt-6">
         <CardTitle>Fee Items</CardTitle>
-        <Table><thead><tr><Th>Description</Th><Th>Amount</Th></tr></thead><tbody>{bill.bill_items?.map((item: any) => <tr key={item.id}><Td>{item.description}</Td><Td>{money(item.amount)}</Td></tr>)}</tbody></Table>
+        <Table><thead><tr><Th>Description</Th><Th>Amount</Th></tr></thead><tbody>{bill.bill_items?.map((item) => <tr key={item.id}><Td>{item.description}</Td><Td>{money(item.amount)}</Td></tr>)}</tbody></Table>
         <div className="mt-4 rounded-md bg-slate-50 p-4 text-sm">Due date: {shortDate(bill.due_date)}. Amount paid: {money(bill.paid_amount)}.</div>
       </Card>
     </>
