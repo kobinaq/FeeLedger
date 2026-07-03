@@ -4,7 +4,7 @@ test("login page renders real Supabase auth form", async ({ request }) => {
   const response = await request.get("/login");
   expect(response.ok()).toBe(true);
   const html = await response.text();
-  expect(html).toContain("Sign in to your account");
+  expect(html).toContain("Use your school, parent, or platform account to continue.");
   expect(html).toContain("name=\"email\"");
   expect(html).toContain("name=\"password\"");
 });
