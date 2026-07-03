@@ -1,23 +1,7 @@
 import Link from "next/link";
-import { Banknote, Bell, BookOpen, ChartColumn, CreditCard, FileText, Home, Landmark, ReceiptText, Settings, Users } from "lucide-react";
 import { requireAdminProfile } from "@/features/auth/server";
 import { getCurrentSchool, getCurrentTerm } from "@/features/schools/queries";
-import { NavLink } from "@/components/layout/nav-link";
-
-const nav = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: Home },
-  { href: "/admin/students", label: "Students", icon: BookOpen },
-  { href: "/admin/families", label: "Families", icon: Users },
-  { href: "/admin/fee-setup", label: "Fee Setup", icon: Landmark },
-  { href: "/admin/bills", label: "Bills", icon: FileText },
-  { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/admin/receipts", label: "Receipts", icon: ReceiptText },
-  { href: "/admin/payment-plans", label: "Plans", icon: Banknote },
-  { href: "/admin/reminders", label: "Reminders", icon: Bell },
-  { href: "/admin/arrears", label: "Arrears", icon: ChartColumn },
-  { href: "/admin/reports", label: "Reports", icon: ChartColumn },
-  { href: "/admin/settings", label: "Settings", icon: Settings }
-];
+import { AdminNav } from "@/components/layout/workspace-navs";
 
 export async function AdminShell({ children }: { children: React.ReactNode }) {
   const profile = await requireAdminProfile();
@@ -30,19 +14,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="text-lg font-bold">FeeLedger</p>
           <p className="text-sm text-emerald-100">{school?.name ?? "School workspace"}</p>
         </Link>
-        <nav className="mt-5 grid grid-cols-2 gap-1 lg:grid-cols-1">
-          {nav.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              icon={item.icon}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
-              activeClassName="bg-white text-brand-greenDark shadow-soft"
-              inactiveClassName="text-emerald-50 hover:bg-white/10"
-            />
-          ))}
-        </nav>
+        <AdminNav />
       </aside>
       <div>
         <header className="no-print flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-5">
