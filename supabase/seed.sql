@@ -2,22 +2,88 @@ insert into schools (id, name, address, phone, email, currency, status)
 values ('00000000-0000-0000-0000-000000000001', 'Gracefield Preparatory School', '12 Independence Avenue, Accra', '+233 30 245 7788', 'accounts@gracefield.test', 'GHS', 'active')
 on conflict (id) do update set name = excluded.name, address = excluded.address, phone = excluded.phone, email = excluded.email;
 
-insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at)
+insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
-('01000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000000','authenticated','authenticated','platform@feeledger.test',crypt('demo12345', gen_salt('bf')),now(),now(),now()),
-('01000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000000','authenticated','authenticated','proprietor@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),now(),now()),
-('01000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000000','authenticated','authenticated','headteacher@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),now(),now()),
-('01000000-0000-0000-0000-000000000004','00000000-0000-0000-0000-000000000000','authenticated','authenticated','accountant@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),now(),now()),
-('01000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000000','authenticated','authenticated','cashier@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),now(),now()),
-('01000000-0000-0000-0000-000000000006','00000000-0000-0000-0000-000000000000','authenticated','authenticated','parent@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),now(),now())
-on conflict (id) do nothing;
+('01000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000000','authenticated','authenticated','platform@feeledger.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
+('01000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000000','authenticated','authenticated','proprietor@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
+('01000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000000','authenticated','authenticated','headteacher@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
+('01000000-0000-0000-0000-000000000004','00000000-0000-0000-0000-000000000000','authenticated','authenticated','accountant@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
+('01000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000000','authenticated','authenticated','cashier@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now()),
+('01000000-0000-0000-0000-000000000006','00000000-0000-0000-0000-000000000000','authenticated','authenticated','parent@gracefield.test',crypt('demo12345', gen_salt('bf')),now(),'{"provider":"email","providers":["email"]}','{}',now(),now())
+on conflict (id) do update set
+  aud = excluded.aud,
+  role = excluded.role,
+  email = excluded.email,
+  encrypted_password = excluded.encrypted_password,
+  email_confirmed_at = excluded.email_confirmed_at,
+  raw_app_meta_data = excluded.raw_app_meta_data,
+  raw_user_meta_data = excluded.raw_user_meta_data,
+  updated_at = now();
+
+update auth.users
+set
+  aud = 'authenticated',
+  role = 'authenticated',
+  encrypted_password = crypt('demo12345', gen_salt('bf')),
+  email_confirmed_at = coalesce(email_confirmed_at, now()),
+  raw_app_meta_data = '{"provider":"email","providers":["email"]}',
+  raw_user_meta_data = coalesce(raw_user_meta_data, '{}'),
+  updated_at = now()
+where email in (
+  'platform@feeledger.test',
+  'proprietor@gracefield.test',
+  'headteacher@gracefield.test',
+  'accountant@gracefield.test',
+  'cashier@gracefield.test',
+  'parent@gracefield.test'
+);
+
+insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000001','01000000-0000-0000-0000-000000000001','{"sub":"01000000-0000-0000-0000-000000000001","email":"platform@feeledger.test"}','email',now(),now(),now()),
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000002','01000000-0000-0000-0000-000000000002','{"sub":"01000000-0000-0000-0000-000000000002","email":"proprietor@gracefield.test"}','email',now(),now(),now()),
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000003','01000000-0000-0000-0000-000000000003','{"sub":"01000000-0000-0000-0000-000000000003","email":"headteacher@gracefield.test"}','email',now(),now(),now()),
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000004','01000000-0000-0000-0000-000000000004','{"sub":"01000000-0000-0000-0000-000000000004","email":"accountant@gracefield.test"}','email',now(),now(),now()),
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000005','01000000-0000-0000-0000-000000000005','{"sub":"01000000-0000-0000-0000-000000000005","email":"cashier@gracefield.test"}','email',now(),now(),now()),
+(gen_random_uuid(),'01000000-0000-0000-0000-000000000006','01000000-0000-0000-0000-000000000006','{"sub":"01000000-0000-0000-0000-000000000006","email":"parent@gracefield.test"}','email',now(),now(),now())
+on conflict (provider_id, provider) do update set
+  user_id = excluded.user_id,
+  identity_data = excluded.identity_data,
+  last_sign_in_at = excluded.last_sign_in_at,
+  updated_at = now();
+
+insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+select
+  gen_random_uuid(),
+  u.id,
+  u.id,
+  jsonb_build_object('sub', u.id::text, 'email', u.email),
+  'email',
+  now(),
+  now(),
+  now()
+from auth.users u
+where u.email in (
+  'platform@feeledger.test',
+  'proprietor@gracefield.test',
+  'headteacher@gracefield.test',
+  'accountant@gracefield.test',
+  'cashier@gracefield.test',
+  'parent@gracefield.test'
+)
+on conflict (provider_id, provider) do update set
+  user_id = excluded.user_id,
+  identity_data = excluded.identity_data,
+  last_sign_in_at = excluded.last_sign_in_at,
+  updated_at = now();
 
 insert into profiles (id, school_id, family_id, full_name, email, role) values
 ('01000000-0000-0000-0000-000000000001', null, null, 'Platform Owner', 'platform@feeledger.test', 'platform_admin'),
 ('01000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', null, 'Mrs. Evelyn Mensah', 'proprietor@gracefield.test', 'school_admin'),
 ('01000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', null, 'Mr. Daniel Armah', 'headteacher@gracefield.test', 'headteacher'),
 ('01000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', null, 'Abena Osei', 'accountant@gracefield.test', 'accountant'),
-('01000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', null, 'Kojo Appiah', 'cashier@gracefield.test', 'cashier')
+('01000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', null, 'Kojo Appiah', 'cashier@gracefield.test', 'cashier'),
+('01000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', null, 'Ama Boateng', 'parent@gracefield.test', 'parent')
 on conflict (id) do update set full_name = excluded.full_name, role = excluded.role;
 
 insert into academic_years (id, school_id, name, starts_on, ends_on)

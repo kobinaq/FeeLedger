@@ -10,9 +10,27 @@ export async function signInAction(formData: FormData) {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) redirect(`/login?error=${encodeURIComponent("Check your email and password, then try again.")}`);
+  if (error) {
+    console.error("Supabase password sign-in failed", {
+      email,
+      message: error.message,
+      status: error.status,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
+    });
+    const detail = error.status ? `${error.message} (${error.status})` : error.message;
+    redirect(`/login?error=${encodeURIComponent(detail)}`);
+  }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("email", email).single();
+  const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("email", email).single();
+  if (profileError || !profile) {
+    console.error("Signed-in user is missing a FeeLedger profile", {
+      email,
+      message: profileError?.message,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
+    });
+    redirect(`/login?error=${encodeURIComponent("Your account exists, but no FeeLedger profile is linked to it.")}`);
+  }
+
   redirect(roleHome(profile?.role));
 }
 
