@@ -7,9 +7,10 @@ test("login page renders real Supabase auth form and demo pathway", async ({ req
   expect(html).toContain("Use your school, parent, or platform account to continue.");
   expect(html).toContain('name="email"');
   expect(html).toContain('name="password"');
-  expect(html).toContain("Try a live demo role");
+  expect(html).toContain("Walk through as");
   expect(html).toContain("Accountant");
   expect(html).toContain("Cashier");
+  expect(html).toContain("FeeLedger");
 });
 
 test("protected admin route redirects unauthenticated users", async ({ request }) => {

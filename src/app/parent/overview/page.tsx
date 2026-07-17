@@ -18,21 +18,41 @@ export default async function ParentOverviewPage() {
   const balance = familyBalance(family);
   return (
     <>
-      <p className="text-sm font-semibold text-brand-amber">{school.name}</p>
-      <h1 className="mt-1 text-2xl font-bold text-slate-950">Hello, {family.guardian_full_name}</h1>
-      <div className="mt-5">
-        <BalanceCard label="Your Family Balance" value={money(balance)} hint={`Next payment due: ${next ? shortDate(next.due_date) : "No payment due now"}`} />
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-amber">{school.name}</p>
+      <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">Hello, {family.guardian_full_name}</h1>
+      <p className="mt-2 text-sm text-brand-muted">Your family balance and next steps are below.</p>
+      <div className="mt-6">
+        <BalanceCard
+          label="Your Family Balance"
+          value={money(balance)}
+          hint={`Next payment due: ${next ? shortDate(next.due_date) : "No payment due now"}`}
+        />
         <PayNowForm amountDue={balance} />
       </div>
-      <section className="mt-5 grid gap-3 sm:grid-cols-4">
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ParentActionCard href="/parent/bills" icon={BookOpen} label="View Bills" hint="See what each child owes." />
         <ParentActionCard href="/parent/receipts" icon={ReceiptText} label="View Receipts" hint="Open or download receipts." />
         <ParentActionCard href="/parent/payment-plan" icon={CreditCard} label="Payment Plan" hint="Check your instalments." />
         <ParentActionCard href="/parent/contact" icon={HelpCircle} label="Contact School" hint="Reach the accounts office." />
       </section>
       <section className="mt-6 grid gap-4 md:grid-cols-2">
-        <Card><CardTitle>Children</CardTitle><div className="mt-3 space-y-2">{family.students?.map((s) => <div key={s.id} className="rounded-md bg-slate-50 p-3">{s.first_name} {s.last_name}</div>)}</div></Card>
-        <Card><CardTitle>Latest Receipt</CardTitle><div className="mt-3">{latestReceipt ? <ReceiptCard receipt={latestReceipt} /> : <p className="text-sm text-slate-500">No receipt yet.</p>}</div></Card>
+        <Card>
+          <CardTitle>Children</CardTitle>
+          <div className="mt-3 space-y-2">
+            {family.students?.map((s) => (
+              <div key={s.id} className="rounded-xl bg-brand-greenSoft/60 px-3 py-3 text-sm font-medium text-brand-ink">
+                {s.first_name} {s.last_name}
+                {s.classes?.name ? <span className="mt-0.5 block text-xs font-normal text-brand-muted">{s.classes.name}</span> : null}
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card>
+          <CardTitle>Latest Receipt</CardTitle>
+          <div className="mt-3">
+            {latestReceipt ? <ReceiptCard receipt={latestReceipt} /> : <p className="text-sm text-brand-muted">No receipt yet.</p>}
+          </div>
+        </Card>
       </section>
     </>
   );
