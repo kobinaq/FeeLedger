@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdminNav } from "@/features/auth/server";
+import { requireAdminProfile } from "@/features/auth/server";
 import { familyBalance, familyPaid, getFamilyById } from "@/features/families/queries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { money, shortDate } from "@/lib/utils";
 
 export default async function FamilyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const profile = await requireAdminNav("families");
+  const profile = await requireAdminProfile();
   const family = await getFamilyById(profile.school_id!, id).catch(() => null);
   if (!family) notFound();
   const plans = family.payment_plans ?? [];

@@ -6,36 +6,6 @@ export const billingMutationRoles: Role[] = ["school_admin", "accountant"];
 export const settingsMutationRoles: Role[] = ["school_admin"];
 export const readOnlyStaffRoles: Role[] = ["headteacher"];
 
-export type AdminNavKey =
-  | "dashboard"
-  | "students"
-  | "families"
-  | "fee-setup"
-  | "bills"
-  | "payments"
-  | "receipts"
-  | "plans"
-  | "reminders"
-  | "arrears"
-  | "reports"
-  | "settings";
-
-/** Which admin nav items each staff role can open (read or write). */
-const navAccess: Record<AdminNavKey, Role[]> = {
-  dashboard: ["school_admin", "headteacher", "accountant", "cashier"],
-  students: ["school_admin", "accountant"],
-  families: ["school_admin", "headteacher", "accountant", "cashier"],
-  "fee-setup": ["school_admin", "accountant"],
-  bills: ["school_admin", "accountant"],
-  payments: ["school_admin", "accountant", "cashier"],
-  receipts: ["school_admin", "headteacher", "accountant", "cashier"],
-  plans: ["school_admin", "headteacher", "accountant"],
-  reminders: ["school_admin", "accountant", "cashier"],
-  arrears: ["school_admin", "headteacher", "accountant"],
-  reports: ["school_admin", "headteacher", "accountant"],
-  settings: ["school_admin"]
-};
-
 export function isStaff(role?: string | null): role is Exclude<Role, "parent" | "platform_admin"> {
   return staffRoles.includes(role as Role);
 }
@@ -58,11 +28,6 @@ export function canManagePaymentPlans(role?: string | null) {
 
 export function canSendReminders(role?: string | null) {
   return ["school_admin", "accountant", "cashier"].includes(role ?? "");
-}
-
-export function canViewAdminNav(role: string | null | undefined, key: AdminNavKey) {
-  if (!role) return false;
-  return navAccess[key].includes(role as Role);
 }
 
 export function roleHome(role?: string | null) {

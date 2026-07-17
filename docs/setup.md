@@ -18,29 +18,20 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Notifications (leave mocks enabled for local/demo)
-MOCK_EMAIL_PROVIDER=enabled
-MOCK_SMS_PROVIDER=enabled
-# Production email/SMS:
-# MOCK_EMAIL_PROVIDER=disabled
-# MOCK_SMS_PROVIDER=disabled
-# RESEND_API_KEY=re_...
-# EMAIL_FROM=accounts@your-school.edu.gh
-# SMS_PROVIDER_URL=https://sms-provider.example/send
-# SMS_PROVIDER_API_KEY=...
+NEXT_PUBLIC_DEMO_AUTH=enabled
+NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true
 ```
+
+Demo auth shows one-click role buttons on `/login` for client walkthroughs. Disable with `NEXT_PUBLIC_DEMO_AUTH=disabled` for production tenants.
 
 ## Database
 
-Run these SQL files in Supabase SQL editor (order matters):
+Run these SQL files in Supabase SQL editor:
 
 1. `supabase/schema.sql`
 2. `supabase/functions.sql`
 3. `supabase/policies.sql`
 4. `supabase/seed.sql`
-
-After pulling app updates that change money/billing logic, re-run `supabase/functions.sql` so RPCs and triggers stay in sync (bill generation, payment recording, installment allocation, dashboard snapshot).
 
 Then create the demo Auth users and matching `profiles` rows with the Supabase Admin API:
 

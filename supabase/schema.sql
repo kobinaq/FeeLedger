@@ -205,6 +205,7 @@ create table online_payment_sessions (
 
 create table payment_webhook_events (
   id uuid primary key default gen_random_uuid(),
+  school_id uuid references schools(id) on delete set null,
   provider text not null,
   event_type text,
   provider_reference text,
@@ -244,6 +245,10 @@ create table payment_plans (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table online_payment_sessions
+  add constraint online_payment_sessions_payment_plan_id_fkey
+  foreign key (payment_plan_id) references payment_plans(id) on delete set null;
 
 create table payment_plan_installments (
   id uuid primary key default gen_random_uuid(),
@@ -313,5 +318,16 @@ create index on payments (school_id, family_id, payment_date);
 create index on online_payment_sessions (school_id, family_id, status);
 create index on online_payment_sessions (provider_reference);
 create index on payment_webhook_events (provider, provider_reference);
+create index on payment_webhook_events (school_id, created_at);
 create index on receipts (school_id, family_id, receipt_date);
 create index on reminders (school_id, family_id, status);
+create index on bill_items (bill_id);
+create index on payment_plans (school_id, family_id);
+create index on payment_plan_installments (payment_plan_id);
+create index on audit_logs (school_id, created_at);
+create index on profiles (family_id);
+create index on terms (school_id);
+create index on fee_rules (school_id, term_id);
+create index on fee_items (school_id);
+create index on subscriptions (school_id);
+create index on students (school_id, status);

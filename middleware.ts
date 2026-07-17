@@ -1,23 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isStaff, roleHome } from "@/features/auth/permissions";
-import {
-  claimsFromRequest,
-  setClaimsCookie,
-  type SessionClaims
-} from "@/features/auth/session-claims";
 import type { CookieOptions } from "@supabase/ssr";
-import type { Role } from "@/types";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
   const protectedPath = path.startsWith("/admin") || path.startsWith("/parent") || path.startsWith("/platform");
+  const protectedApi = path.startsWith("/api/payments") || path.startsWith("/api/bills") || path.startsWith("/api/reminders") || path.startsWith("/api/exports");
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes("example.supabase.co")) {
     if (protectedPath) return NextResponse.redirect(new URL("/login", request.url));
+    if (protectedApi) return NextResponse.json({ ok: false, error: "Supabase is not configured." }, { status: 503 });
     return response;
   }
 
@@ -36,55 +32,46 @@ export async function middleware(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (!user && protectedPath) {
+  if (!user && (protectedPath || protectedApi)) {
+    if (protectedApi) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (!user) return response;
 
-  // Prefer JWT app_metadata or fl_claims cookie — avoid profiles table on every hop.
-  let claims: SessionClaims | null = claimsFromRequest(request, user);
-  let shouldPersistClaims = false;
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const role = profile?.role;
 
-  if (!claims) {
-    const { data: profile } = await supabase.from("profiles").select("role, school_id, family_id").eq("id", user.id).single();
-    if (profile?.role) {
-      claims = {
-        userId: user.id,
-        role: profile.role as Role,
-        schoolId: profile.school_id ?? null,
-        familyId: profile.family_id ?? null
-      };
-      shouldPersistClaims = true;
-    }
-  }
-
-  const role = claims?.role;
-
-  const withClaims = (res: NextResponse) => {
-    if (claims && shouldPersistClaims) setClaimsCookie(res, claims);
-    return res;
-  };
-
-  if (path === "/login" && role) {
-    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
+  if ((path === "/login" || path === "/forgot-password") && role) {
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
   if (path.startsWith("/parent") && role !== "parent") {
-    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
   if (path.startsWith("/platform") && role !== "platform_admin") {
-    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
   if (path.startsWith("/admin") && !isStaff(role)) {
-    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
-  return withClaims(response);
+  return response;
 }
 
 export const config = {
-  matcher: ["/login", "/admin/:path*", "/parent/:path*", "/platform/:path*"]
+  matcher: [
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+    "/admin/:path*",
+    "/parent/:path*",
+    "/platform/:path*",
+    "/api/payments/:path*",
+    "/api/bills/:path*",
+    "/api/reminders/:path*",
+    "/api/exports/:path*"
+  ]
 };

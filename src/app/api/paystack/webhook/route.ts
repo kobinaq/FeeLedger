@@ -35,9 +35,21 @@ export async function POST(request: NextRequest) {
   }
 
   const reference = payload?.data?.reference ?? null;
+  let schoolId: string | null = null;
+  if (reference) {
+    const { data: session } = await supabase
+      .from("online_payment_sessions")
+      .select("school_id")
+      .eq("provider", "paystack")
+      .eq("provider_reference", reference)
+      .maybeSingle();
+    schoolId = session?.school_id ?? null;
+  }
+
   const { data: event } = await supabase
     .from("payment_webhook_events")
     .insert({
+      school_id: schoolId,
       provider: "paystack",
       event_type: payload?.event ?? null,
       provider_reference: reference,
@@ -61,11 +73,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await verifyAndRecordPaystackPayment(reference);
+    const result = await verifyAndRecordPaystackPayment(reference);
     if (event) {
       await supabase
         .from("payment_webhook_events")
-        .update({ processing_status: "processed", processed_at: new Date().toISOString() })
+        .update({
+          school_id: result.schoolId ?? schoolId,
+          processing_status: "processed",
+          processed_at: new Date().toISOString()
+        })
         .eq("id", event.id);
     }
     return NextResponse.json({ ok: true });

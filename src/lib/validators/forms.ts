@@ -71,9 +71,3 @@ export const schoolSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   currency: z.string().default("GHS")
 });
-
-export const subscriptionSchema = z.object({
-  plan: z.enum(["starter", "growth", "premium"]),
-  status: z.enum(["active", "trialing", "past_due", "cancelled", "inactive"]),
-  endsOn: z.string().optional()
-});

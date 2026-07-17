@@ -69,9 +69,14 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["online_payment_sessions"]["Insert"]>;
       };
       payment_webhook_events: {
-        Row: { id: string; provider: string; event_type: string | null; provider_reference: string | null; payload: Json; signature_valid: boolean; processing_status: string; processing_error: string | null; processed_at: string | null; created_at: string };
-        Insert: { id?: string; provider: string; event_type?: string | null; provider_reference?: string | null; payload: Json; signature_valid?: boolean; processing_status?: string; processing_error?: string | null; processed_at?: string | null };
+        Row: { id: string; school_id: string | null; provider: string; event_type: string | null; provider_reference: string | null; payload: Json; signature_valid: boolean; processing_status: string; processing_error: string | null; processed_at: string | null; created_at: string };
+        Insert: { id?: string; school_id?: string | null; provider: string; event_type?: string | null; provider_reference?: string | null; payload: Json; signature_valid?: boolean; processing_status?: string; processing_error?: string | null; processed_at?: string | null };
         Update: Partial<Database["public"]["Tables"]["payment_webhook_events"]["Insert"]>;
+      };
+      school_payment_methods: {
+        Row: { id: string; school_id: string; name: string; is_active: boolean; created_at: string; updated_at: string };
+        Insert: { id?: string; school_id: string; name: string; is_active?: boolean };
+        Update: Partial<Database["public"]["Tables"]["school_payment_methods"]["Insert"]>;
       };
       receipts: {
         Row: { id: string; school_id: string; family_id: string; student_id: string | null; payment_id: string; receipt_number: string; amount: number; method: string; reference_number: string | null; receipt_date: string; recorded_by: string | null; created_at: string; updated_at: string };
@@ -139,25 +144,6 @@ export type Database = {
           p_verified_at?: string | null;
         };
         Returns: string;
-      };
-      generate_bills_for_classes: {
-        Args: {
-          p_school_id: string;
-          p_term_id: string;
-          p_class_ids: string[];
-          p_publish?: boolean;
-        };
-        Returns: number;
-      };
-      school_collection_snapshot: {
-        Args: { p_school_id: string };
-        Returns: {
-          expected: number;
-          collected: number;
-          outstanding: number;
-          today_collected: number;
-          active_plans: number;
-        };
       };
     };
     CompositeTypes: Record<string, never>;

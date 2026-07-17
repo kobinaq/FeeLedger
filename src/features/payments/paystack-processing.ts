@@ -28,7 +28,10 @@ async function markSession(reference: string, verification: PaystackVerification
   if (error) throw new Error(error.message);
 }
 
-export async function verifyAndRecordPaystackPayment(reference: string) {
+export async function verifyAndRecordPaystackPayment(
+  reference: string,
+  options?: { expectedFamilyId?: string | null }
+) {
   const supabase = createServiceClient();
   const { data: session, error: sessionError } = await supabase
     .from("online_payment_sessions")
@@ -38,10 +41,14 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     .single();
   if (sessionError || !session) throw new Error(sessionError?.message ?? "Payment session not found.");
 
+  if (options?.expectedFamilyId && session.family_id !== options.expectedFamilyId) {
+    throw new Error("This payment does not belong to your family account.");
+  }
+
   const verification = await verifyPaystackTransaction(reference);
   await markSession(reference, verification);
 
-  if (verification.status !== "success") return { status: verification.status, paymentId: null };
+  if (verification.status !== "success") return { status: verification.status, paymentId: null, schoolId: session.school_id };
   if (verification.currency !== session.currency) throw new Error("Verified currency does not match the payment session.");
   if (Math.abs(Number(session.amount) - verification.amount) > 0.01) throw new Error("Verified amount does not match the payment session.");
 
@@ -52,7 +59,7 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     .eq("provider_reference", reference)
     .maybeSingle();
   if (existingError) throw new Error(existingError.message);
-  if (existing) return { status: "success", paymentId: existing.id };
+  if (existing) return { status: "success", paymentId: existing.id, schoolId: session.school_id };
 
   const { data: paymentId, error: paymentError } = await supabase.rpc("record_payment_transaction", {
     p_school_id: session.school_id,
@@ -73,5 +80,5 @@ export async function verifyAndRecordPaystackPayment(reference: string) {
     p_verified_at: new Date().toISOString()
   });
   if (paymentError) throw new Error(paymentError.message);
-  return { status: "success", paymentId };
+  return { status: "success", paymentId, schoolId: session.school_id };
 }

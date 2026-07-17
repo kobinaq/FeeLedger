@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { generateBillsAction } from "@/features/bills/actions";
-import { requireAdminNav } from "@/features/auth/server";
+import { requireAdminProfile } from "@/features/auth/server";
 import { getBills } from "@/features/bills/queries";
 import { getClasses, getCurrentTerm } from "@/features/schools/queries";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { money, shortDate } from "@/lib/utils";
 
 export default async function BillsPage() {
-  const profile = await requireAdminNav("bills");
+  const profile = await requireAdminProfile();
   const [bills, classes, term] = await Promise.all([
     getBills(profile.school_id!),
     getClasses(profile.school_id!),

@@ -10,17 +10,25 @@ It is intentionally not a general school management system. There is no attendan
 - TypeScript
 - Tailwind CSS
 - Supabase Auth, Postgres, Storage, and RLS
-- Domain feature modules under `src/features/*` (queries + server actions)
-- Zod validators; money multi-writes in Postgres RPCs
+- React Hook Form and Zod-ready validators
 - Recharts reports
-- Paystack online payments (parent) + manual payment recording
-- Mock or real SMS/email reminder providers
+- Mock SMS and email providers (swap to Resend / HTTP SMS for production)
+- Manual payment recording + Paystack online payments
 
-See `docs/architecture.md` for layering rules.
+## Demo Auth (live client walkthroughs)
 
-## Demo Users
+On `/login`, when demo auth is enabled, one-click role buttons sign into the Gracefield demo school:
 
-Use password `demo12345` for all demo accounts:
+- Proprietor, Headteacher, Accountant, Cashier, Parent, Platform
+
+Configure with:
+
+```bash
+NEXT_PUBLIC_DEMO_AUTH=enabled
+NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true
+```
+
+Demo password for manual sign-in: `demo12345`
 
 - `platform@feeledger.test`
 - `proprietor@gracefield.test`
@@ -29,10 +37,15 @@ Use password `demo12345` for all demo accounts:
 - `cashier@gracefield.test`
 - `parent@gracefield.test`
 
+For production tenants, set `NEXT_PUBLIC_DEMO_AUTH=disabled`.
+
 ## Run Locally
 
 ```bash
 npm install
+cp .env.example .env.local
+# fill Supabase keys
+npm run setup:demo-users
 npm run dev
 ```
 
@@ -47,30 +60,33 @@ Open `http://localhost:3000`.
    - `supabase/functions.sql`
    - `supabase/policies.sql`
    - `supabase/seed.sql`
-4. Create the demo Auth users and matching profiles with the Admin API:
+   - `supabase/migrations/20260717000000_production_hardening.sql` (for existing projects that already applied older SQL)
+4. Create the demo Auth users and matching profiles:
    ```bash
    npm run setup:demo-users
    ```
-   This requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`. Do not expose the service role key in Vercel client env vars.
 
-The SQL seed intentionally avoids direct writes to `auth.users` and `auth.identities`. Auth users should be created through Supabase Auth, the Dashboard, or the Admin API script above.
-
-The app uses Supabase as the runtime source of truth. The old in-app demo data is not used by production routes.
+`SUPABASE_SERVICE_ROLE_KEY` is required for the demo user script. Never expose it as a `NEXT_PUBLIC_` variable.
 
 ## Tests
 
 ```bash
-npm run verify          # typecheck + DB type map + unit tests + lint
+npm run typecheck
 npm test
 npm run build
-npm run test:e2e        # starts dev/server via Playwright webServer config
 ```
 
-CI runs the same quality gates on every push/PR (see `.github/workflows/ci.yml`).
+For E2E tests, start the app first, then run Playwright:
+
+```bash
+npm run dev -- -p 3000
+npm run test:e2e
+```
 
 ## Important Routes
 
-- `/login`
+- `/login` (includes demo role buttons when enabled)
+- `/reset-password`
 - `/admin/dashboard`
 - `/admin/students`
 - `/admin/families`
