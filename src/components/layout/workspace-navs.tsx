@@ -52,16 +52,16 @@ function visibleAdminNav(role?: Role | null) {
 export function AdminNav({ role }: { role?: Role | null }) {
   const items = visibleAdminNav(role);
   return (
-    <nav className="mt-5 grid grid-cols-2 gap-1 lg:grid-cols-1">
+    <nav className="relative mt-6 grid grid-cols-2 gap-1.5 lg:grid-cols-1">
       {items.map((item) => (
         <NavLink
           key={item.href}
           href={item.href}
           label={item.label}
           icon={item.icon}
-          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-200"
           activeClassName="bg-white text-brand-greenDark shadow-soft"
-          inactiveClassName="text-emerald-50 hover:bg-white/10"
+          inactiveClassName="text-emerald-50/90 hover:bg-white/10"
         />
       ))}
     </nav>
@@ -72,7 +72,7 @@ export function ParentMobileNav() {
   const primary = parentNav.slice(0, 4);
   const more = parentNav.slice(4);
   return (
-    <nav className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white p-2 sm:hidden">
+    <nav className="fixed inset-x-0 bottom-0 border-t border-brand-line/80 bg-white/95 p-2 backdrop-blur-md sm:hidden">
       <div className="grid grid-cols-5 gap-1">
         {primary.map((item) => (
           <NavLink
@@ -80,27 +80,27 @@ export function ParentMobileNav() {
             href={item.href}
             label={item.label}
             icon={item.icon}
-            className="flex flex-col items-center gap-1 rounded-md p-2 text-xs font-medium"
-            activeClassName="bg-brand-greenDark text-white"
-            inactiveClassName="text-slate-600"
+            className="flex flex-col items-center gap-1 rounded-xl p-2 text-xs font-medium transition"
+            activeClassName="bg-brand-green text-white"
+            inactiveClassName="text-brand-muted"
             exact
           />
         ))}
         <details className="relative">
-          <summary className="flex cursor-pointer list-none flex-col items-center gap-1 rounded-md p-2 text-xs font-medium text-slate-600">
+          <summary className="flex cursor-pointer list-none flex-col items-center gap-1 rounded-xl p-2 text-xs font-medium text-brand-muted">
             <MoreHorizontal className="h-4 w-4" />
             More
           </summary>
-          <div className="absolute bottom-14 right-0 z-20 min-w-40 rounded-md border border-slate-200 bg-white p-2 shadow-panel">
+          <div className="absolute bottom-14 right-0 z-20 min-w-44 rounded-2xl border border-brand-line bg-white p-2 shadow-panel">
             {more.map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}
                 label={item.label}
                 icon={item.icon}
-                className="mb-1 flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
-                activeClassName="bg-brand-greenDark text-white"
-                inactiveClassName="text-slate-700 hover:bg-slate-50"
+                className="mb-1 flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium"
+                activeClassName="bg-brand-green text-white"
+                inactiveClassName="text-brand-ink hover:bg-brand-greenSoft"
                 exact
               />
             ))}
@@ -113,15 +113,15 @@ export function ParentMobileNav() {
 
 export function ParentDesktopNav() {
   return (
-    <nav className="mx-auto hidden max-w-5xl gap-2 px-5 sm:flex">
+    <nav className="hidden gap-1.5 rounded-2xl border border-brand-line/80 bg-white/80 p-1.5 shadow-soft backdrop-blur-sm sm:flex">
       {parentNav.map((item) => (
         <NavLink
           key={item.href}
           href={item.href}
           label={item.label}
-          className="rounded-md px-3 py-2 text-sm font-semibold transition-colors"
-          activeClassName="bg-white text-brand-greenDark shadow-soft"
-          inactiveClassName="text-slate-600 hover:bg-white"
+          className="rounded-xl px-3 py-2 text-sm font-semibold transition duration-200"
+          activeClassName="bg-brand-green text-white shadow-soft"
+          inactiveClassName="text-brand-muted hover:bg-brand-greenSoft hover:text-brand-green"
           exact
         />
       ))}
@@ -131,16 +131,16 @@ export function ParentDesktopNav() {
 
 export function PlatformNav() {
   return (
-    <nav className="flex gap-2">
+    <nav className="flex gap-1.5">
       {platformNav.map((item) => (
         <NavLink
           key={item.href}
           href={item.href}
           label={item.label}
           icon={item.icon}
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
-          activeClassName="bg-white text-slate-950"
-          inactiveClassName="text-slate-200 hover:bg-white/10"
+          className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition duration-200"
+          activeClassName="bg-white text-brand-greenDark"
+          inactiveClassName="text-emerald-100/80 hover:bg-white/10"
         />
       ))}
     </nav>
