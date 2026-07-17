@@ -75,6 +75,8 @@ begin
     return new;
   end if;
 
+  perform set_config('feeledger.allow_bill_money', 'on', true);
+
   update bills
   set paid_amount = least(total_amount, paid_amount + new.amount),
       status = case
@@ -320,3 +322,84 @@ create trigger touch_reminders before update on reminders for each row execute f
 create trigger payments_update_bill after insert on payments for each row execute function recalculate_bill_status();
 create trigger payments_create_receipt after insert on payments for each row execute function create_receipt_for_payment();
 create trigger payments_update_plan after insert on payments for each row execute function update_payment_plan_installment_for_payment();
+
+create or replace function public.protect_bill_money_columns()
+returns trigger
+language plpgsql
+as $$
+begin
+  if current_setting('feeledger.allow_bill_money', true) = 'on' then
+    return new;
+  end if;
+  if new.paid_amount is distinct from old.paid_amount or new.total_amount is distinct from old.total_amount then
+    raise exception 'Bill money fields can only be changed through payment transactions.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_bill_money on bills;
+create trigger protect_bill_money before update on bills for each row execute function protect_bill_money_columns();
+
+create or replace function public.reverse_payment_transaction(p_payment_id uuid, p_reason text default null)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target payments%rowtype;
+  paid_sum numeric(12,2);
+begin
+  if public.current_role() not in ('school_admin', 'accountant') and coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'You do not have permission to reverse payments.';
+  end if;
+
+  select * into target from payments where id = p_payment_id for update;
+  if target.id is null then
+    raise exception 'Payment not found.';
+  end if;
+  if target.reversed_at is not null then
+    raise exception 'Payment is already reversed.';
+  end if;
+  if current_school_id() is not null and target.school_id <> current_school_id() then
+    raise exception 'Payment does not belong to this school.';
+  end if;
+
+  update payments
+  set reversed_at = now(),
+      notes = coalesce(notes || E'\n', '') || coalesce('Reversed: ' || p_reason, 'Reversed'),
+      updated_at = now()
+  where id = p_payment_id;
+
+  if target.bill_id is not null then
+    select coalesce(sum(amount), 0) into paid_sum
+    from payments
+    where bill_id = target.bill_id and reversed_at is null;
+
+    perform set_config('feeledger.allow_bill_money', 'on', true);
+
+    update bills
+    set paid_amount = least(total_amount, paid_sum),
+        status = case
+          when least(total_amount, paid_sum) >= total_amount then 'paid'::bill_status
+          when least(total_amount, paid_sum) > 0 then 'partially_paid'::bill_status
+          else 'published'::bill_status
+        end,
+        updated_at = now()
+    where id = target.bill_id;
+  end if;
+
+  insert into audit_logs (school_id, actor_id, action, entity_type, entity_id, metadata)
+  values (
+    target.school_id,
+    auth.uid(),
+    'reversed_payment',
+    'payments',
+    target.id,
+    jsonb_build_object('reason', p_reason, 'amount', target.amount)
+  );
+
+  return target.id;
+end;
+$$;

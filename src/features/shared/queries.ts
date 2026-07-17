@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
 export type FamilySummary = Tables<"families"> & {
-  students: Tables<"students">[];
-  bills: Tables<"bills">[];
+  students: Array<Tables<"students"> & { classes?: Tables<"classes"> | null }>;
+  bills: Array<Tables<"bills"> & { students?: Tables<"students"> | null; bill_items?: Tables<"bill_items">[] }>;
   payments: Tables<"payments">[];
   receipts: Tables<"receipts">[];
 };
@@ -17,7 +17,7 @@ export type FamilyDetail = FamilySummary & {
 };
 
 export type BillDetail = Tables<"bills"> & {
-  students: Tables<"students"> | null;
+  students: (Tables<"students"> & { classes?: Tables<"classes"> | null }) | null;
   families: Tables<"families"> | null;
   terms: Tables<"terms"> | null;
   bill_items: Tables<"bill_items">[];
@@ -88,7 +88,7 @@ export async function getParentFamily(familyId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("families")
-    .select("*, students(*), bills(*), payments(*), receipts(*), reminders(*), payment_plans(*, payment_plan_installments(*))")
+    .select("*, students(*, classes(*)), bills(*, students(*)), payments(*), receipts(*), reminders(*), payment_plans(*, payment_plan_installments(*))")
     .eq("id", familyId)
     .single();
   if (error) throw new Error(error.message);
@@ -127,7 +127,7 @@ export async function getBills(schoolId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("*, students(*), families(*), terms(*)")
+    .select("*, students(*, classes(*)), families(*), terms(*), bill_items(*)")
     .eq("school_id", schoolId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);

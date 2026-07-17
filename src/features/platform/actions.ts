@@ -1,1 +1,1 @@
-export { createPlatformSchoolAction, toggleSchoolStatusAction } from "@/features/shared/actions";
+export { createPlatformSchoolAction, toggleSchoolStatusAction, updatePlatformSubscriptionAction } from "@/features/shared/actions";

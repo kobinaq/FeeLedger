@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default async function PaystackCallbackPage({ searchParams }: { searchParams?: Promise<{ reference?: string }> }) {
-  await requireParentProfile();
+  const profile = await requireParentProfile();
   const params = await searchParams;
   const reference = params?.reference;
   let status: string = "missing";
@@ -14,11 +14,12 @@ export default async function PaystackCallbackPage({ searchParams }: { searchPar
 
   if (reference) {
     try {
-      const result = await verifyAndRecordPaystackPayment(reference);
+      const result = await verifyAndRecordPaystackPayment(reference, { expectedFamilyId: profile.family_id });
       status = result.status;
-      message = result.status === "success"
-        ? "Payment received. Your receipt and balance have been updated."
-        : "Paystack has not confirmed this payment yet.";
+      message =
+        result.status === "success"
+          ? "Payment received. Your receipt and balance have been updated."
+          : "Paystack has not confirmed this payment yet.";
     } catch (error) {
       status = "failed";
       message = error instanceof Error ? error.message : "Payment verification failed.";
@@ -34,8 +35,12 @@ export default async function PaystackCallbackPage({ searchParams }: { searchPar
       <p className="mt-2 text-sm text-slate-500">{message}</p>
       {reference ? <p className="mt-3 text-xs font-semibold text-slate-500">Reference: {reference}</p> : null}
       <div className="mt-6 flex justify-center gap-3">
-        <Link href="/parent/receipts"><Button>View Receipts</Button></Link>
-        <Link href="/parent/overview"><Button variant="secondary">Home</Button></Link>
+        <Link href="/parent/receipts">
+          <Button>View Receipts</Button>
+        </Link>
+        <Link href="/parent/overview">
+          <Button variant="secondary">Home</Button>
+        </Link>
       </div>
     </Card>
   );

@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { calculateBillStatus, canRole, interpolateReminder, validateInstallmentTotal } from "../src/lib/services/domain";
 import { amountFromSubunit, amountToSubunit, createPaystackReference, verifyPaystackSignature } from "../src/lib/services/paystack";
 import { reminderDeliveryStatus } from "../src/lib/services/notifications";
-import { canRecordPayment, roleHome } from "../src/features/auth/permissions";
+import { canManageBilling, canRecordPayment, canSendReminders, roleHome } from "../src/features/auth/permissions";
+import { DEMO_PASSWORD, demoAccountByRole, demoAccounts } from "../src/lib/demo/accounts";
 
 describe("FeeLedger domain rules", () => {
   it("calculates bill payment status", () => {
@@ -18,7 +19,9 @@ describe("FeeLedger domain rules", () => {
   });
 
   it("interpolates reminder templates", () => {
-    expect(interpolateReminder("Dear {{guardian_name}}, balance is GHS {{balance}}.", { guardian_name: "Ama", balance: 250 })).toBe("Dear Ama, balance is GHS 250.");
+    expect(interpolateReminder("Dear {{guardian_name}}, balance is GHS {{balance}}.", { guardian_name: "Ama", balance: 250 })).toBe(
+      "Dear Ama, balance is GHS 250."
+    );
   });
 
   it("enforces role permissions", () => {
@@ -43,6 +46,19 @@ describe("FeeLedger domain rules", () => {
     expect(canRecordPayment("parent")).toBe(false);
   });
 
+  it("limits billing and reminder permissions", () => {
+    expect(canManageBilling("cashier")).toBe(false);
+    expect(canManageBilling("accountant")).toBe(true);
+    expect(canSendReminders("cashier")).toBe(true);
+    expect(canSendReminders("headteacher")).toBe(false);
+  });
+
+  it("exposes demo accounts for live walkthroughs", () => {
+    expect(demoAccounts.length).toBeGreaterThanOrEqual(6);
+    expect(demoAccountByRole("cashier")?.email).toBe("cashier@gracefield.test");
+    expect(DEMO_PASSWORD).toBe("demo12345");
+  });
+
   it("converts Paystack currency subunits", () => {
     expect(amountToSubunit(125.5)).toBe(12550);
     expect(amountFromSubunit(12550)).toBe(125.5);
@@ -63,9 +79,11 @@ describe("FeeLedger domain rules", () => {
   it("summarizes reminder delivery status", () => {
     expect(reminderDeliveryStatus([{ provider: "sms", channel: "sms", status: "sent", providerId: "1" }])).toBe("sent");
     expect(reminderDeliveryStatus([{ provider: "sms", channel: "sms", status: "failed", providerId: "1" }])).toBe("failed");
-    expect(reminderDeliveryStatus([
-      { provider: "sms", channel: "sms", status: "sent", providerId: "1" },
-      { provider: "email", channel: "email", status: "failed", providerId: "2" }
-    ])).toBe("partial");
+    expect(
+      reminderDeliveryStatus([
+        { provider: "sms", channel: "sms", status: "sent", providerId: "1" },
+        { provider: "email", channel: "email", status: "failed", providerId: "2" }
+      ])
+    ).toBe("partial");
   });
 });

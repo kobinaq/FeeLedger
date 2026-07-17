@@ -12,12 +12,23 @@ It is intentionally not a general school management system. There is no attendan
 - Supabase Auth, Postgres, Storage, and RLS
 - React Hook Form and Zod-ready validators
 - Recharts reports
-- Mock SMS and email providers
-- Manual payment recording
+- Mock SMS and email providers (swap to Resend / HTTP SMS for production)
+- Manual payment recording + Paystack online payments
 
-## Demo Users
+## Demo Auth (live client walkthroughs)
 
-Use password `demo12345` for all demo accounts:
+On `/login`, when demo auth is enabled, one-click role buttons sign into the Gracefield demo school:
+
+- Proprietor, Headteacher, Accountant, Cashier, Parent, Platform
+
+Configure with:
+
+```bash
+NEXT_PUBLIC_DEMO_AUTH=enabled
+NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true
+```
+
+Demo password for manual sign-in: `demo12345`
 
 - `platform@feeledger.test`
 - `proprietor@gracefield.test`
@@ -26,10 +37,15 @@ Use password `demo12345` for all demo accounts:
 - `cashier@gracefield.test`
 - `parent@gracefield.test`
 
+For production tenants, set `NEXT_PUBLIC_DEMO_AUTH=disabled`.
+
 ## Run Locally
 
 ```bash
 npm install
+cp .env.example .env.local
+# fill Supabase keys
+npm run setup:demo-users
 npm run dev
 ```
 
@@ -44,15 +60,13 @@ Open `http://localhost:3000`.
    - `supabase/functions.sql`
    - `supabase/policies.sql`
    - `supabase/seed.sql`
-4. Create the demo Auth users and matching profiles with the Admin API:
+   - `supabase/migrations/20260717000000_production_hardening.sql` (for existing projects that already applied older SQL)
+4. Create the demo Auth users and matching profiles:
    ```bash
    npm run setup:demo-users
    ```
-   This requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`. Do not expose the service role key in Vercel client env vars.
 
-The SQL seed intentionally avoids direct writes to `auth.users` and `auth.identities`. Auth users should be created through Supabase Auth, the Dashboard, or the Admin API script above.
-
-The app uses Supabase as the runtime source of truth. The old in-app demo data is not used by production routes.
+`SUPABASE_SERVICE_ROLE_KEY` is required for the demo user script. Never expose it as a `NEXT_PUBLIC_` variable.
 
 ## Tests
 
@@ -71,7 +85,8 @@ npm run test:e2e
 
 ## Important Routes
 
-- `/login`
+- `/login` (includes demo role buttons when enabled)
+- `/reset-password`
 - `/admin/dashboard`
 - `/admin/students`
 - `/admin/families`

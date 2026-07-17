@@ -301,6 +301,26 @@ export async function initiateParentPaystackPaymentAction(formData: FormData) {
     const billOutstanding = Number(bill.total_amount) - Number(bill.paid_amount);
     if (parsed.amount > billOutstanding) throw new Error("Payment amount cannot be more than the selected bill balance.");
   }
+  if (parsed.studentId) {
+    const { data: student } = await supabase
+      .from("students")
+      .select("id")
+      .eq("id", parsed.studentId)
+      .eq("family_id", profile.family_id!)
+      .eq("school_id", profile.school_id!)
+      .maybeSingle();
+    if (!student) throw new Error("Student not found for this family.");
+  }
+  if (parsed.paymentPlanId) {
+    const { data: plan } = await supabase
+      .from("payment_plans")
+      .select("id")
+      .eq("id", parsed.paymentPlanId)
+      .eq("family_id", profile.family_id!)
+      .eq("school_id", profile.school_id!)
+      .maybeSingle();
+    if (!plan) throw new Error("Payment plan not found for this family.");
+  }
 
   const reference = createPaystackReference("FL");
   const callbackUrl = process.env.PAYSTACK_CALLBACK_URL ?? `${process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? "http://localhost:3000"}/parent/payments/paystack/callback`;
@@ -476,4 +496,22 @@ export async function toggleSchoolStatusAction(formData: FormData) {
   const { error } = await supabase.from("schools").update({ status }).eq("id", schoolId);
   if (error) throw new Error(error.message);
   revalidatePath("/platform/schools");
+}
+
+export async function updatePlatformSubscriptionAction(formData: FormData) {
+  await requirePlatformProfile();
+  const schoolId = String(formData.get("schoolId"));
+  const plan = String(formData.get("plan") ?? "starter");
+  const status = String(formData.get("status") ?? "active");
+  const supabase = createServiceClient();
+  const { data: existing } = await supabase.from("subscriptions").select("id").eq("school_id", schoolId).maybeSingle();
+  if (existing) {
+    const { error } = await supabase.from("subscriptions").update({ plan, status }).eq("id", existing.id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase.from("subscriptions").insert({ school_id: schoolId, plan, status });
+    if (error) throw new Error(error.message);
+  }
+  revalidatePath("/platform/subscriptions");
+  redirect("/platform/subscriptions?saved=1");
 }

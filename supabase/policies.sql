@@ -23,6 +23,7 @@ alter table subscriptions enable row level security;
 
 drop policy if exists "platform can manage schools" on schools;
 drop policy if exists "staff can read own school" on schools;
+drop policy if exists "school admins update own school" on schools;
 drop policy if exists "staff read payment methods" on school_payment_methods;
 drop policy if exists "school admin manage payment methods" on school_payment_methods;
 drop policy if exists "platform profiles" on profiles;
@@ -79,12 +80,25 @@ drop policy if exists "school reads subscription" on subscriptions;
 
 create policy "platform can manage schools" on schools for all using (is_platform_admin()) with check (is_platform_admin());
 create policy "staff can read own school" on schools for select using (id = current_school_id());
+create policy "school admins update own school" on schools for update
+  using (id = current_school_id() and public.current_role() = 'school_admin')
+  with check (id = current_school_id() and public.current_role() = 'school_admin');
+
 create policy "staff read payment methods" on school_payment_methods for select using (school_id = current_school_id());
-create policy "school admin manage payment methods" on school_payment_methods for all using (school_id = current_school_id() and public.current_role() = 'school_admin') with check (school_id = current_school_id());
+create policy "school admin manage payment methods" on school_payment_methods for all
+  using (school_id = current_school_id() and public.current_role() = 'school_admin')
+  with check (school_id = current_school_id() and public.current_role() = 'school_admin');
 
 create policy "platform profiles" on profiles for all using (is_platform_admin()) with check (is_platform_admin());
 create policy "users read own profile" on profiles for select using (id = auth.uid());
-create policy "school admins manage school profiles" on profiles for all using (school_id = current_school_id() and public.current_role() = 'school_admin') with check (school_id = current_school_id() and public.current_role() = 'school_admin');
+-- School admins may manage school-scoped roles only; never elevate to platform_admin.
+create policy "school admins manage school profiles" on profiles for all
+  using (school_id = current_school_id() and public.current_role() = 'school_admin')
+  with check (
+    school_id = current_school_id()
+    and public.current_role() = 'school_admin'
+    and role in ('school_admin', 'headteacher', 'accountant', 'cashier', 'parent')
+  );
 
 create policy "school read classes" on classes for select using (school_id = current_school_id() or is_platform_admin());
 create policy "school admin manage classes" on classes for all using (school_id = current_school_id() and public.current_role() = 'school_admin') with check (school_id = current_school_id());
@@ -116,13 +130,14 @@ create policy "admins manage bill items" on bill_items for all using (school_id 
 
 create policy "staff read payments" on payments for select using (school_id = current_school_id());
 create policy "parents read own payments" on payments for select using (family_id = (select family_id from profiles where id = auth.uid()));
-create policy "cashiers insert payments" on payments for insert with check (school_id = current_school_id() and public.current_role() in ('school_admin','accountant','cashier'));
+-- Direct client inserts are denied. Use record_payment_transaction (security definer).
 create policy "no payment deletes" on payments for delete using (false);
 
 create policy "staff read online payment sessions" on online_payment_sessions for select using (school_id = current_school_id());
 create policy "parents read own online payment sessions" on online_payment_sessions for select using (family_id = (select family_id from profiles where id = auth.uid()));
 create policy "parents create own online payment sessions" on online_payment_sessions for insert with check (school_id = current_school_id() and family_id = (select family_id from profiles where id = auth.uid()) and created_by = auth.uid());
-create policy "staff read payment webhook events" on payment_webhook_events for select using (public.current_role() in ('school_admin','accountant'));
+create policy "staff read payment webhook events" on payment_webhook_events for select
+  using (school_id = current_school_id() and public.current_role() in ('school_admin','accountant'));
 
 create policy "staff read receipts" on receipts for select using (school_id = current_school_id());
 create policy "parents read own receipts" on receipts for select using (family_id = (select family_id from profiles where id = auth.uid()));
@@ -141,7 +156,7 @@ create policy "staff read reminders" on reminders for select using (school_id = 
 create policy "parents read own reminders" on reminders for select using (family_id = (select family_id from profiles where id = auth.uid()));
 create policy "staff create reminders" on reminders for insert with check (school_id = current_school_id() and public.current_role() in ('school_admin','accountant','cashier'));
 
-create policy "audit insert only" on audit_logs for insert with check (school_id = current_school_id() or is_platform_admin());
+-- Audit rows are written by security-definer RPCs / service role; authenticated users read only.
 create policy "audit read staff" on audit_logs for select using (school_id = current_school_id() and public.current_role() in ('school_admin','headteacher','accountant'));
 
 create policy "platform subscriptions" on subscriptions for all using (is_platform_admin()) with check (is_platform_admin());

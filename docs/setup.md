@@ -11,14 +11,18 @@ The app starts at `http://localhost:3000` and redirects to `/login`.
 
 ## Environment
 
-Create `.env.local`:
+Create `.env.local` from `.env.example`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DEMO_AUTH=enabled
+NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true
 ```
+
+Demo auth shows one-click role buttons on `/login` for client walkthroughs. Disable with `NEXT_PUBLIC_DEMO_AUTH=disabled` for production tenants.
 
 ## Database
 
