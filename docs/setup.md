@@ -26,12 +26,24 @@ Demo auth shows one-click role buttons on `/login` for client walkthroughs. Disa
 
 ## Database
 
-Run these SQL files in Supabase SQL editor:
+### Fresh project
+
+Run these SQL files in the Supabase SQL editor, in order:
 
 1. `supabase/schema.sql`
 2. `supabase/functions.sql`
 3. `supabase/policies.sql`
 4. `supabase/seed.sql`
+
+### Existing project (upgrade)
+
+If the database was created from an older schema, run this **before** or instead of re-running full schema:
+
+1. `supabase/migrations/20260717000000_production_hardening.sql` (adds `payment_webhook_events.school_id` and indexes)
+2. `supabase/functions.sql` (updated RPCs/triggers)
+3. `supabase/policies.sql` (also adds `school_id` if missing, then recreates RLS policies)
+
+`policies.sql` now adds `payment_webhook_events.school_id` automatically if it is missing, so you should not see `column "school_id" does not exist` when re-applying policies.
 
 Then create the demo Auth users and matching `profiles` rows with the Supabase Admin API:
 

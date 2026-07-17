@@ -1,3 +1,19 @@
+-- Ensure schema prerequisites for existing projects before applying policies.
+-- Fresh installs already have these from schema.sql; ADD COLUMN IF NOT EXISTS is safe either way.
+alter table payment_webhook_events
+  add column if not exists school_id uuid references schools(id) on delete set null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'online_payment_sessions_payment_plan_id_fkey'
+  ) then
+    alter table online_payment_sessions
+      add constraint online_payment_sessions_payment_plan_id_fkey
+      foreign key (payment_plan_id) references payment_plans(id) on delete set null;
+  end if;
+end $$;
+
 alter table schools enable row level security;
 alter table school_payment_methods enable row level security;
 alter table profiles enable row level security;
