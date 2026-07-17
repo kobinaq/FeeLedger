@@ -1,6 +1,6 @@
 import { Field } from "@/components/forms/field";
 import { archiveStudentAction, createStudentAction } from "@/features/students/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getFamilies } from "@/features/families/queries";
 import { getClasses } from "@/features/schools/queries";
 import { getStudents } from "@/features/students/queries";
@@ -12,7 +12,7 @@ import { SearchBox } from "@/components/ui/search-box";
 import { Td, Th, Table } from "@/components/ui/table";
 
 export default async function StudentsPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("students");
   const [students, classes, families] = await Promise.all([
     getStudents(profile.school_id!),
     getClasses(profile.school_id!),

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createFamilyAction } from "@/features/families/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { familyBalance, familyPaid, getFamilies } from "@/features/families/queries";
 import { Field } from "@/components/forms/field";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { money } from "@/lib/utils";
 
 export default async function FamiliesPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("families");
   const families = await getFamilies(profile.school_id!);
   return (
     <>

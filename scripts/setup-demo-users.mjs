@@ -85,6 +85,12 @@ async function upsertDemoUser(user) {
   const existing = await findUserByEmail(user.email);
   const userMetadata = { full_name: user.fullName, role: user.role };
   const familyId = user.email === "parent@gracefield.test" ? await getParentFamilyId() : user.familyId;
+  // JWT app_metadata lets middleware route without a profiles query on every request.
+  const appMetadata = {
+    feeledger_role: user.role,
+    feeledger_school_id: user.schoolId,
+    feeledger_family_id: familyId,
+  };
 
   const result = existing
     ? await supabase.auth.admin.updateUserById(existing.id, {
@@ -92,12 +98,14 @@ async function upsertDemoUser(user) {
         password: PASSWORD,
         email_confirm: true,
         user_metadata: userMetadata,
+        app_metadata: appMetadata,
       })
     : await supabase.auth.admin.createUser({
         email: user.email,
         password: PASSWORD,
         email_confirm: true,
         user_metadata: userMetadata,
+        app_metadata: appMetadata,
       });
 
   if (result.error) throw result.error;
@@ -112,6 +120,17 @@ async function upsertDemoUser(user) {
     role: user.role,
   });
   if (profileError) throw profileError;
+
+  // Parent family id may only resolve after seed; re-sync claims after profile upsert.
+  if (familyId !== user.familyId || !existing) {
+    await supabase.auth.admin.updateUserById(authUser.id, {
+      app_metadata: {
+        feeledger_role: user.role,
+        feeledger_school_id: user.schoolId,
+        feeledger_family_id: familyId,
+      },
+    });
+  }
 
   createdProfiles.set(user.email, authUser.id);
   console.log(`Ready: ${user.email} (${user.role})`);
@@ -167,6 +186,14 @@ async function backfillDemoReferences() {
       .update({ family_id: parentFamilyId })
       .eq("id", parentId);
     if (parentError) throw parentError;
+
+    await supabase.auth.admin.updateUserById(parentId, {
+      app_metadata: {
+        feeledger_role: "parent",
+        feeledger_school_id: SCHOOL_ID,
+        feeledger_family_id: parentFamilyId,
+      },
+    });
   }
 }
 

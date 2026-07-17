@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { recordPaymentAction } from "@/features/payments/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getBills } from "@/features/bills/queries";
 import { familyBalance, getFamilies } from "@/features/families/queries";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { money } from "@/lib/utils";
 
 export default async function NewPaymentPage({ searchParams }: { searchParams?: Promise<{ success?: string }> }) {
   const params = await searchParams;
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("payments");
   const [families, bills] = await Promise.all([getFamilies(profile.school_id!), getBills(profile.school_id!)]);
   const firstFamily = families[0];
   const firstBalance = firstFamily ? familyBalance(firstFamily) : 0;

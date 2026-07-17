@@ -1,6 +1,6 @@
 import { Bell } from "lucide-react";
 import { sendReminderAction } from "@/features/reminders/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getReminders } from "@/features/reminders/queries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { shortDate } from "@/lib/utils";
 
 export default async function RemindersPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("reminders");
   const { templates, reminders, families } = await getReminders(profile.school_id!);
   return (
     <>

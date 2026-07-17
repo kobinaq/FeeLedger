@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { familyBalance, getBills, getFamilies, termStats } from "@/features/reports/queries";
 import { Card, CardTitle } from "@/components/ui/card";
 import { ExportButton } from "@/components/ui/export-button";
@@ -10,7 +10,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { money } from "@/lib/utils";
 
 export default async function ArrearsPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("arrears");
   const [families, bills] = await Promise.all([getFamilies(profile.school_id!), getBills(profile.school_id!)]);
   const stats = termStats(bills, []);
   const top = families.map((family) => ({ family, students: family.students.length, balance: familyBalance(family) })).sort((a, b) => b.balance - a.balance);

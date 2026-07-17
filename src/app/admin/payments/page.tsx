@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getPayments } from "@/features/payments/queries";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { money, shortDate } from "@/lib/utils";
 
 export default async function PaymentsPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("payments");
   const payments = await getPayments(profile.school_id!);
   return (
     <>

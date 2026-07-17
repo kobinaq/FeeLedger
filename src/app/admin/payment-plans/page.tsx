@@ -1,5 +1,5 @@
 import { createPaymentPlanAction } from "@/features/payment-plans/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { familyBalance, getPaymentPlans } from "@/features/payment-plans/queries";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { money, shortDate } from "@/lib/utils";
 
 export default async function PaymentPlansPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("plans");
   const { plans, families } = await getPaymentPlans(profile.school_id!);
   return (
     <>

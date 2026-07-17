@@ -8,9 +8,11 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check:types-map": "node scripts/check-db-types.mjs",
     "setup:demo-users": "node scripts/setup-demo-users.mjs",
     "test": "vitest run tests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify": "npm run typecheck && npm run check:types-map && npm test && npm run lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

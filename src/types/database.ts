@@ -140,6 +140,25 @@ export type Database = {
         };
         Returns: string;
       };
+      generate_bills_for_classes: {
+        Args: {
+          p_school_id: string;
+          p_term_id: string;
+          p_class_ids: string[];
+          p_publish?: boolean;
+        };
+        Returns: number;
+      };
+      school_collection_snapshot: {
+        Args: { p_school_id: string };
+        Returns: {
+          expected: number;
+          collected: number;
+          outstanding: number;
+          today_collected: number;
+          active_plans: number;
+        };
+      };
     };
     CompositeTypes: Record<string, never>;
   };

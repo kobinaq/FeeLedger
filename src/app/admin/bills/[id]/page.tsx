@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { publishBillAction } from "@/features/bills/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getBillById } from "@/features/bills/queries";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { money, shortDate } from "@/lib/utils";
 
 export default async function BillDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("bills");
   const bill = await getBillById(profile.school_id!, id).catch(() => null);
   if (!bill) notFound();
   return (

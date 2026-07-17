@@ -14,7 +14,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="text-lg font-bold">FeeLedger</p>
           <p className="text-sm text-emerald-100">{school?.name ?? "School workspace"}</p>
         </Link>
-        <AdminNav />
+        <AdminNav role={profile.role} />
       </aside>
       <div>
         <header className="no-print flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-5">

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { money, shortDate } from "@/lib/utils";
 
 export default async function PrintableReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("receipts");
   const supabase = await createClient();
   const { data: receipt } = await supabase
     .from("receipts")

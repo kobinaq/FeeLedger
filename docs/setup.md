@@ -11,23 +11,36 @@ The app starts at `http://localhost:3000` and redirects to `/login`.
 
 ## Environment
 
-Create `.env.local`:
+Create `.env.local` from `.env.example`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Notifications (leave mocks enabled for local/demo)
+MOCK_EMAIL_PROVIDER=enabled
+MOCK_SMS_PROVIDER=enabled
+# Production email/SMS:
+# MOCK_EMAIL_PROVIDER=disabled
+# MOCK_SMS_PROVIDER=disabled
+# RESEND_API_KEY=re_...
+# EMAIL_FROM=accounts@your-school.edu.gh
+# SMS_PROVIDER_URL=https://sms-provider.example/send
+# SMS_PROVIDER_API_KEY=...
 ```
 
 ## Database
 
-Run these SQL files in Supabase SQL editor:
+Run these SQL files in Supabase SQL editor (order matters):
 
 1. `supabase/schema.sql`
 2. `supabase/functions.sql`
 3. `supabase/policies.sql`
 4. `supabase/seed.sql`
+
+After pulling app updates that change money/billing logic, re-run `supabase/functions.sql` so RPCs and triggers stay in sync (bill generation, payment recording, installment allocation, dashboard snapshot).
 
 Then create the demo Auth users and matching `profiles` rows with the Supabase Admin API:
 

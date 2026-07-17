@@ -1,7 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isStaff, roleHome } from "@/features/auth/permissions";
+import {
+  claimsFromRequest,
+  setClaimsCookie,
+  type SessionClaims
+} from "@/features/auth/session-claims";
 import type { CookieOptions } from "@supabase/ssr";
+import type { Role } from "@/types";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -15,50 +21,68 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        }
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       }
     }
-  );
+  });
 
   const {
     data: { user }
   } = await supabase.auth.getUser();
+
   if (!user && protectedPath) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (!user) return response;
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  const role = profile?.role;
+  // Prefer JWT app_metadata or fl_claims cookie — avoid profiles table on every hop.
+  let claims: SessionClaims | null = claimsFromRequest(request, user);
+  let shouldPersistClaims = false;
+
+  if (!claims) {
+    const { data: profile } = await supabase.from("profiles").select("role, school_id, family_id").eq("id", user.id).single();
+    if (profile?.role) {
+      claims = {
+        userId: user.id,
+        role: profile.role as Role,
+        schoolId: profile.school_id ?? null,
+        familyId: profile.family_id ?? null
+      };
+      shouldPersistClaims = true;
+    }
+  }
+
+  const role = claims?.role;
+
+  const withClaims = (res: NextResponse) => {
+    if (claims && shouldPersistClaims) setClaimsCookie(res, claims);
+    return res;
+  };
 
   if (path === "/login" && role) {
-    return NextResponse.redirect(new URL(roleHome(role), request.url));
+    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
   }
 
   if (path.startsWith("/parent") && role !== "parent") {
-    return NextResponse.redirect(new URL(roleHome(role), request.url));
+    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
   }
 
   if (path.startsWith("/platform") && role !== "platform_admin") {
-    return NextResponse.redirect(new URL(roleHome(role), request.url));
+    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
   }
 
   if (path.startsWith("/admin") && !isStaff(role)) {
-    return NextResponse.redirect(new URL(roleHome(role), request.url));
+    return withClaims(NextResponse.redirect(new URL(roleHome(role), request.url)));
   }
 
-  return response;
+  return withClaims(response);
 }
 
 export const config = {

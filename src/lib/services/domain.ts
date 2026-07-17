@@ -1,5 +1,5 @@
 import type { Role } from "@/types";
-import { canManageBilling, canManagePaymentPlans, canManageSettings, canRecordPayment, canSendReminders } from "../../features/auth/permissions";
+import { canManageBilling, canManagePaymentPlans, canManageSettings, canRecordPayment, canSendReminders } from "@/features/auth/permissions";
 
 export function calculateBillStatus(total: number, paid: number) {
   if (paid >= total) return "paid";

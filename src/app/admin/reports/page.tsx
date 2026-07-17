@@ -4,12 +4,12 @@ import { Select } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { SimpleReportTable } from "@/components/reports/simple-report-table";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getBills, getPayments, getReceipts, termStats } from "@/features/reports/queries";
 import { money, percent } from "@/lib/utils";
 
 export default async function ReportsPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("reports");
   const [bills, payments, receipts] = await Promise.all([getBills(profile.school_id!), getPayments(profile.school_id!), getReceipts(profile.school_id!)]);
   const term = termStats(bills, payments);
   const today = new Date().toISOString().slice(0, 10);

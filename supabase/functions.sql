@@ -247,6 +247,7 @@ begin
 end;
 $$;
 
+-- Cascade payment amount across open installments (earliest due first).
 create or replace function public.update_payment_plan_installment_for_payment()
 returns trigger
 language plpgsql
@@ -254,47 +255,241 @@ security definer
 set search_path = public
 as $$
 declare
-  target_installment payment_plan_installments%rowtype;
+  remaining numeric(12,2) := new.amount;
+  rec record;
+  apply_amount numeric(12,2);
+  new_paid numeric(12,2);
 begin
-  select i.*
-  into target_installment
-  from payment_plan_installments i
-  join payment_plans p on p.id = i.payment_plan_id
-  where p.family_id = new.family_id
-    and p.school_id = new.school_id
-    and p.status in ('active','on_track','missed_payment')
-    and i.status <> 'paid'
-  order by i.due_date asc
-  limit 1;
+  for rec in
+    select i.id, i.amount, i.paid_amount, i.due_date, i.payment_plan_id
+    from payment_plan_installments i
+    join payment_plans p on p.id = i.payment_plan_id
+    where p.family_id = new.family_id
+      and p.school_id = new.school_id
+      and p.status in ('active', 'on_track', 'missed_payment')
+      and i.status <> 'paid'
+    order by i.due_date asc
+  loop
+    exit when remaining <= 0;
+    apply_amount := least(rec.amount - rec.paid_amount, remaining);
+    if apply_amount <= 0 then
+      continue;
+    end if;
 
-  if target_installment.id is null then
-    return new;
-  end if;
+    new_paid := rec.paid_amount + apply_amount;
+    update payment_plan_installments
+    set paid_amount = new_paid,
+        status = case
+          when new_paid >= rec.amount then 'paid'::installment_status
+          when new_paid > 0 then 'partially_paid'::installment_status
+          when rec.due_date < current_date then 'overdue'::installment_status
+          else status
+        end,
+        updated_at = now()
+    where id = rec.id;
 
-  update payment_plan_installments
-  set paid_amount = least(amount, paid_amount + new.amount),
-      status = case
-        when least(amount, paid_amount + new.amount) >= amount then 'paid'::installment_status
-        when least(amount, paid_amount + new.amount) > 0 then 'partially_paid'::installment_status
-        when due_date < current_date then 'overdue'::installment_status
-        else status
-      end,
-      updated_at = now()
-  where id = target_installment.id;
+    remaining := remaining - apply_amount;
+  end loop;
 
-  update payment_plans
+  update payment_plans p
   set status = case
     when not exists (
-      select 1 from payment_plan_installments
-      where payment_plan_id = target_installment.payment_plan_id and status <> 'paid'
+      select 1 from payment_plan_installments i
+      where i.payment_plan_id = p.id and i.status <> 'paid'
     ) then 'completed'::plan_status
+    when exists (
+      select 1 from payment_plan_installments i
+      where i.payment_plan_id = p.id and i.status = 'overdue'
+    ) then 'missed_payment'::plan_status
     else 'on_track'::plan_status
   end,
   updated_at = now()
-  where id = target_installment.payment_plan_id;
+  where p.family_id = new.family_id
+    and p.school_id = new.school_id
+    and p.status in ('active', 'on_track', 'missed_payment');
 
   return new;
 end;
+$$;
+
+create sequence if not exists bill_number_seq start 1000;
+
+-- Generate bills for selected classes in one transaction (skips students who already have a non-cancelled bill for the term).
+create or replace function public.generate_bills_for_classes(
+  p_school_id uuid,
+  p_term_id uuid,
+  p_class_ids uuid[],
+  p_publish boolean default false
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  created_count integer := 0;
+  student_rec record;
+  bill_id uuid;
+  bill_total numeric(12,2);
+  bill_due date;
+  bill_number text;
+  year_text text := to_char(now(), 'YYYY');
+begin
+  if current_school_id() is null or p_school_id <> current_school_id() then
+    raise exception 'Bill generation school does not match the signed-in profile.';
+  end if;
+
+  if public.current_role() not in ('school_admin', 'accountant') then
+    raise exception 'You do not have permission to generate bills.';
+  end if;
+
+  if p_class_ids is null or array_length(p_class_ids, 1) is null then
+    raise exception 'Select at least one class.';
+  end if;
+
+  if not exists (select 1 from terms where id = p_term_id and school_id = p_school_id) then
+    raise exception 'Term not found for this school.';
+  end if;
+
+  for student_rec in
+    select s.*
+    from students s
+    where s.school_id = p_school_id
+      and s.class_id = any (p_class_ids)
+      and s.status = 'active'
+  loop
+    if exists (
+      select 1 from bills b
+      where b.student_id = student_rec.id
+        and b.term_id = p_term_id
+        and b.status <> 'cancelled'
+    ) then
+      continue;
+    end if;
+
+    bill_total := 0;
+    bill_due := current_date;
+
+    select coalesce(sum(r.amount), 0), min(r.due_date)
+    into bill_total, bill_due
+    from fee_rules r
+    join fee_items fi on fi.id = r.fee_item_id
+    where r.school_id = p_school_id
+      and r.term_id = p_term_id
+      and r.class_id = student_rec.class_id
+      and (
+        r.is_required
+        or fi.category = any (student_rec.optional_services)
+      );
+
+    if bill_total is null or bill_total <= 0 then
+      continue;
+    end if;
+
+    bill_number := 'BILL-' || year_text || '-' || student_rec.student_code || '-' || lpad(nextval('bill_number_seq')::text, 5, '0');
+
+    insert into bills (
+      school_id, family_id, student_id, term_id, bill_number, status,
+      total_amount, due_date, published_at
+    )
+    values (
+      p_school_id,
+      student_rec.family_id,
+      student_rec.id,
+      p_term_id,
+      bill_number,
+      case when p_publish then 'published'::bill_status else 'draft'::bill_status end,
+      bill_total,
+      coalesce(bill_due, current_date),
+      case when p_publish then now() else null end
+    )
+    returning id into bill_id;
+
+    insert into bill_items (school_id, bill_id, fee_item_id, description, amount)
+    select
+      p_school_id,
+      bill_id,
+      r.fee_item_id,
+      fi.name,
+      r.amount
+    from fee_rules r
+    join fee_items fi on fi.id = r.fee_item_id
+    where r.school_id = p_school_id
+      and r.term_id = p_term_id
+      and r.class_id = student_rec.class_id
+      and (
+        r.is_required
+        or fi.category = any (student_rec.optional_services)
+      );
+
+    created_count := created_count + 1;
+  end loop;
+
+  insert into audit_logs (school_id, actor_id, action, entity_type, entity_id, metadata)
+  values (
+    p_school_id,
+    auth.uid(),
+    case when p_publish then 'published_bills' else 'generated_bill_drafts' end,
+    'bills',
+    null,
+    jsonb_build_object(
+      'created', created_count,
+      'term_id', p_term_id,
+      'class_ids', to_jsonb(p_class_ids),
+      'publish', p_publish
+    )
+  );
+
+  return created_count;
+end;
+$$;
+
+-- Headline collection stats for dashboards (published/partially_paid/paid/overdue bills).
+create or replace function public.school_collection_snapshot(p_school_id uuid)
+returns table (
+  expected numeric,
+  collected numeric,
+  outstanding numeric,
+  today_collected numeric,
+  active_plans bigint
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    coalesce((
+      select sum(b.total_amount)
+      from bills b
+      where b.school_id = p_school_id
+        and b.status in ('published', 'partially_paid', 'paid', 'overdue')
+    ), 0) as expected,
+    coalesce((
+      select sum(b.paid_amount)
+      from bills b
+      where b.school_id = p_school_id
+        and b.status in ('published', 'partially_paid', 'paid', 'overdue')
+    ), 0) as collected,
+    coalesce((
+      select sum(b.total_amount - b.paid_amount)
+      from bills b
+      where b.school_id = p_school_id
+        and b.status in ('published', 'partially_paid', 'paid', 'overdue')
+    ), 0) as outstanding,
+    coalesce((
+      select sum(p.amount)
+      from payments p
+      where p.school_id = p_school_id
+        and p.payment_date = current_date
+        and p.reversed_at is null
+    ), 0) as today_collected,
+    coalesce((
+      select count(*)
+      from payment_plans pl
+      where pl.school_id = p_school_id
+        and pl.status in ('active', 'on_track', 'missed_payment')
+    ), 0) as active_plans;
 $$;
 
 drop trigger if exists touch_schools on schools;

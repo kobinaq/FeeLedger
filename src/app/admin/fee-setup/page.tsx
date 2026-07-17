@@ -1,6 +1,6 @@
 import { Field } from "@/components/forms/field";
 import { createFeeItemAction, createFeeRuleAction } from "@/features/fees/actions";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getFeeSetup } from "@/features/fees/queries";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Td, Th, Table } from "@/components/ui/table";
 import { money, shortDate } from "@/lib/utils";
 
 export default async function FeeSetupPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("fee-setup");
   const { feeItems, feeRules, terms, classes } = await getFeeSetup(profile.school_id!);
   return (
     <>

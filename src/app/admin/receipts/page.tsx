@@ -4,12 +4,12 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchBox } from "@/components/ui/search-box";
 import { Td, Th, Table } from "@/components/ui/table";
-import { requireAdminProfile } from "@/features/auth/server";
+import { requireAdminNav } from "@/features/auth/server";
 import { getReceipts } from "@/features/receipts/queries";
 import { money, shortDate } from "@/lib/utils";
 
 export default async function ReceiptsPage() {
-  const profile = await requireAdminProfile();
+  const profile = await requireAdminNav("receipts");
   const receipts = await getReceipts(profile.school_id!);
   return (
     <>

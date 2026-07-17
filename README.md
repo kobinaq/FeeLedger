@@ -10,10 +10,13 @@ It is intentionally not a general school management system. There is no attendan
 - TypeScript
 - Tailwind CSS
 - Supabase Auth, Postgres, Storage, and RLS
-- React Hook Form and Zod-ready validators
+- Domain feature modules under `src/features/*` (queries + server actions)
+- Zod validators; money multi-writes in Postgres RPCs
 - Recharts reports
-- Mock SMS and email providers
-- Manual payment recording
+- Paystack online payments (parent) + manual payment recording
+- Mock or real SMS/email reminder providers
+
+See `docs/architecture.md` for layering rules.
 
 ## Demo Users
 
@@ -57,17 +60,13 @@ The app uses Supabase as the runtime source of truth. The old in-app demo data i
 ## Tests
 
 ```bash
-npm run typecheck
+npm run verify          # typecheck + DB type map + unit tests + lint
 npm test
 npm run build
+npm run test:e2e        # starts dev/server via Playwright webServer config
 ```
 
-For E2E tests, start the app first, then run Playwright:
-
-```bash
-npm run dev -- -p 3000
-npm run test:e2e
-```
+CI runs the same quality gates on every push/PR (see `.github/workflows/ci.yml`).
 
 ## Important Routes
 

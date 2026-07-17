@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isStaff, roleHome } from "@/features/auth/permissions";
+import { canViewAdminNav, isStaff, roleHome, type AdminNavKey } from "@/features/auth/permissions";
 
 export async function getSessionProfile() {
   const supabase = await createClient();
@@ -29,6 +29,13 @@ export async function requireProfile() {
 export async function requireAdminProfile() {
   const profile = await requireProfile();
   if (!isStaff(profile.role)) redirect(roleHome(profile.role));
+  return profile;
+}
+
+/** Staff gate + nav capability check (blocks deep links cashiers/headteachers shouldn't open). */
+export async function requireAdminNav(key: AdminNavKey) {
+  const profile = await requireAdminProfile();
+  if (!canViewAdminNav(profile.role, key)) redirect(roleHome(profile.role));
   return profile;
 }
 

@@ -5,6 +5,7 @@ node_modules
 dist
 coverage
 *.log
+debug.log
 .next-dev.err
 .next-dev.log
 .next-start.err
@@ -12,3 +13,4 @@ coverage
 tsconfig.tsbuildinfo
 test-results
 playwright-report
+playwright/.cache

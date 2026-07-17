@@ -2,20 +2,22 @@
 
 import { Banknote, Bell, BookOpen, Building2, ChartColumn, CreditCard, FileText, HelpCircle, Home, Landmark, ReceiptText, Settings, Users } from "lucide-react";
 import { NavLink } from "@/components/layout/nav-link";
+import { canViewAdminNav, type AdminNavKey } from "@/features/auth/permissions";
+import type { Role } from "@/types";
 
-const adminNav = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: Home },
-  { href: "/admin/students", label: "Students", icon: BookOpen },
-  { href: "/admin/families", label: "Families", icon: Users },
-  { href: "/admin/fee-setup", label: "Fee Setup", icon: Landmark },
-  { href: "/admin/bills", label: "Bills", icon: FileText },
-  { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/admin/receipts", label: "Receipts", icon: ReceiptText },
-  { href: "/admin/payment-plans", label: "Plans", icon: Banknote },
-  { href: "/admin/reminders", label: "Reminders", icon: Bell },
-  { href: "/admin/arrears", label: "Arrears", icon: ChartColumn },
-  { href: "/admin/reports", label: "Reports", icon: ChartColumn },
-  { href: "/admin/settings", label: "Settings", icon: Settings }
+const adminNav: Array<{ href: string; label: string; icon: typeof Home; key: AdminNavKey }> = [
+  { href: "/admin/dashboard", label: "Dashboard", icon: Home, key: "dashboard" },
+  { href: "/admin/students", label: "Students", icon: BookOpen, key: "students" },
+  { href: "/admin/families", label: "Families", icon: Users, key: "families" },
+  { href: "/admin/fee-setup", label: "Fee Setup", icon: Landmark, key: "fee-setup" },
+  { href: "/admin/bills", label: "Bills", icon: FileText, key: "bills" },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard, key: "payments" },
+  { href: "/admin/receipts", label: "Receipts", icon: ReceiptText, key: "receipts" },
+  { href: "/admin/payment-plans", label: "Plans", icon: Banknote, key: "plans" },
+  { href: "/admin/reminders", label: "Reminders", icon: Bell, key: "reminders" },
+  { href: "/admin/arrears", label: "Arrears", icon: ChartColumn, key: "arrears" },
+  { href: "/admin/reports", label: "Reports", icon: ChartColumn, key: "reports" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, key: "settings" }
 ];
 
 const parentNav = [
@@ -33,10 +35,11 @@ const platformNav = [
   { href: "/platform/subscriptions", label: "Subscriptions", icon: CreditCard }
 ];
 
-export function AdminNav() {
+export function AdminNav({ role }: { role: Role | string }) {
+  const items = adminNav.filter((item) => canViewAdminNav(role, item.key));
   return (
     <nav className="mt-5 grid grid-cols-2 gap-1 lg:grid-cols-1">
-      {adminNav.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.href}
           href={item.href}
